@@ -61,6 +61,8 @@ extern "C" {
 		AV_WARNING = 0x0F000000,
 		AV_OUT_OF_BOUNDS = AV_WARNING | 1,
 		AV_VALIDATION_NOT_PRESEND = AV_WARNING | 2,
+		AV_UNSPECIFIED_CALLBACK = AV_WARNING | 3,
+		AV_UNUSUAL_ARGUMENTS = AV_WARNING | 4,
 
 		// ERROR
 		AV_ERROR = 0xF0000000,
@@ -108,7 +110,8 @@ extern "C" {
 
 	void* avAllocate_(uint size, uint count, AV_LOCATION_ARGS, const char* msg);
 #define avAllocate(size,count,message) avAllocate_(size,count,AV_LOCATION_PARAMS, message)
-	void avFree(void* data);
+	void avFree_(void* data, AV_LOCATION_ARGS);
+#define avFree(data) avFree_(data,AV_LOCATION_PARAMS)
 
 #define AV_VERSION(major, minor) (major << 16 | minor)
 
@@ -146,6 +149,17 @@ extern "C" {
 	}AvLogSettings;
 	extern const AvLogSettings avLogSettingsDefault;
 
+	AV_DEFINE_STRUCT(AvWindowCreateInfo,
+		uint x;
+		uint y;
+		uint width;
+		uint height;
+		const char* title;
+		bool resizable;
+		bool fullscreen;
+	);
+#define WINDOW_POSITION_NOT_SPECIFIED (-1)
+
 	// INSTANCE
 	AV_DEFINE_HANDLE(AvInstance);
 	AV_DEFINE_STRUCT(AvInstanceCreateInfo,
@@ -153,21 +167,10 @@ extern "C" {
 		uint projectVersion;
 		AvLogSettings* logSettings;
 		bool disableVulkanValidation;
+		AvWindowCreateInfo windowInfo;
 	);
 	AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance);
 	void avInstanceDestroy(AvInstance instance);
-
-	// WINDOW
-	AV_DEFINE_HANDLE(AvWindow);
-	AV_DEFINE_STRUCT(AvWindowCreateInfo,
-		uint width;
-		uint height;
-		const char* title;
-		uint bResizable;
-		uint bFullscreen;
-	);
-	AvResult avWindowCreate(AvInstance instance, AvWindowCreateInfo createInfo, AvWindow* window);
-	void avWindowDestroy(AvWindow window);
 
 #ifdef __cplusplus
 }
