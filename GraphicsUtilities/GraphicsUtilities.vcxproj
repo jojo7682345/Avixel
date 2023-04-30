@@ -53,12 +53,12 @@
     <TargetName>$(ProjectName)Debug</TargetName>
     <OutDir>C:\SDK\CCR\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>C:\SDK\CCR\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Lib>
