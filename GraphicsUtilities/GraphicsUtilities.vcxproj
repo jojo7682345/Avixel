@@ -13,18 +13,14 @@
   <ItemGroup>
     <ClInclude Include="include\GraphicsUtilities.h" />
     <ClInclude Include="src\core\core.h" />
-    <ClInclude Include="src\core\display\display.h" />
     <ClInclude Include="src\core\logging\logging.h" />
     <ClInclude Include="src\core\renderer\renderer.h" />
-    <ClInclude Include="src\core\renderer\util\util.h" />
     <ClInclude Include="src\core\util\util.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\core.c" />
-    <ClCompile Include="src\core\display\display.c" />
     <ClCompile Include="src\core\logging\logging.c" />
-    <ClCompile Include="src\core\renderer\renderer.c" />
-    <ClCompile Include="src\core\renderer\util\util.c" />
+    <ClCompile Include="src\core\renderer\vulkanCore\vulkanCore.c" />
     <ClCompile Include="src\core\util\util.c" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

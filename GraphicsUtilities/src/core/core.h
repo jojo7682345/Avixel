@@ -3,15 +3,19 @@
 #include "util/util.h"
 #include "renderer/renderer.h"
 #include "logging/logging.h"
-#include "display/display.h"
 
-
+typedef struct RenderInstance_T* RenderInstance;
+typedef struct RenderDevice_T* RenderDevice;
+typedef struct DisplaySurface_T* DisplaySurface;
+typedef struct Window_T* Window;
 
 typedef struct AvInstance_T {
 	DisplaySurface displaySurface;
+	RenderInstance renderInstance;
 	Window window;
+	RenderDevice renderDevice;
 }AvInstance_T;
 
 
 
-//static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* pUserData);
+//

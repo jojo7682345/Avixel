@@ -23,7 +23,7 @@ extern "C" {
 #endif
 
 #ifndef DISABLE_TYPEDEFS
-	typedef unsigned long uint64;
+	typedef unsigned long long uint64;
 	typedef unsigned int uint32;
 	typedef unsigned short uint16;
 	typedef unsigned char uint8;
@@ -49,23 +49,23 @@ extern "C" {
 
 	typedef enum AvResult {
 		// SUCCESS
-		AV_SUCCESS = 0,
+		AV_SUCCESS = 0x00000000 | 0,
 
 		// DEBUG
-		AV_DEBUG = 0x000F0000,
+		AV_DEBUG = 0x000F0000 | 0,
 
 		// INFO
-		AV_INFO = 0x00F00000,
+		AV_INFO = 0x00F00000 | 0,
 
 		// WARNING
-		AV_WARNING = 0x0F000000,
+		AV_WARNING = 0x0F000000 | 0,
 		AV_OUT_OF_BOUNDS = AV_WARNING | 1,
 		AV_VALIDATION_NOT_PRESEND = AV_WARNING | 2,
 		AV_UNSPECIFIED_CALLBACK = AV_WARNING | 3,
 		AV_UNUSUAL_ARGUMENTS = AV_WARNING | 4,
 
 		// ERROR
-		AV_ERROR = 0xF0000000,
+		AV_ERROR = 0xF0000000 | 0,
 		AV_NO_SUPPORT = AV_ERROR | 1,
 		AV_INVALID_ARGUMENTS = AV_ERROR | 2,
 		AV_TIMEOUT = AV_ERROR | 3,
@@ -94,10 +94,12 @@ extern "C" {
 #define AV_LOG_FILE_DEFAULT 0
 #define AV_LOG_FUNC_DEFAULT 0
 #define AV_LOG_PROJECT_DEFAULT 0
-#define AV_LOG_TIME_DEFAULT 1
+#define AV_LOG_TIME_DEFAULT 0
 #define AV_LOG_TYPE_DEFAULT 1
 #define AV_LOG_ERROR_DEFAULT 1
 #define AV_ASSERT_LEVEL_DEFAULT AV_ASSERT_LEVEL_ALL
+#define AV_LOG_CODE_DEFAULT 1
+#define AV_VALIDATION_LEVEL_DEFAULT AV_LOG_LEVEL_ALL
 
 #define AV_LOCATION_ARGS uint64 line, const char* file, const char* func, FILE* fstream
 #define AV_LOCATION_PARAMS __LINE__, __FILE__,__func__, stdout
@@ -111,12 +113,13 @@ extern "C" {
 	void* avAllocate_(uint size, uint count, AV_LOCATION_ARGS, const char* msg);
 #define avAllocate(size,count,message) avAllocate_(size,count,AV_LOCATION_PARAMS, message)
 	void avFree_(void* data, AV_LOCATION_ARGS);
-#define avFree(data) avFree_(data,AV_LOCATION_PARAMS)
+#define avFree(data) avFree_(data, AV_LOCATION_PARAMS)
 
 #define AV_VERSION(major, minor) (major << 16 | minor)
 
 	typedef enum AvStructureType {
-		AV_STRUCTURE_TYPE_INSTANCE_CREATE_INFO = 0
+		AV_STRUCTURE_TYPE_INSTANCE_CREATE_INFO = 0,
+		AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO = 0
 	}AvStructureType;
 
 #ifndef __cplusplus
@@ -126,6 +129,11 @@ extern "C" {
 		AvStructureType sType;
 		AvStructure* pNext;
 	} AvStructure;
+
+	typedef struct AvProjectInfo {
+		const char* pProjectName;
+		uint projectVersion;
+	} AvProjectInfo;
 
 #define AV_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
@@ -145,7 +153,9 @@ extern "C" {
 		uint32 printType;
 		uint32 printError;
 		uint32 printSuccess;
-		uint32 assertLevel;
+		AvAssertLevel assertLevel;
+		uint32 printCode;
+		AvLogLevel validationLevel;
 	}AvLogSettings;
 	extern const AvLogSettings avLogSettingsDefault;
 
@@ -158,15 +168,14 @@ extern "C" {
 		bool resizable;
 		bool fullscreen;
 	);
-#define WINDOW_POSITION_NOT_SPECIFIED (-1)
+#define AV_WINDOW_POSITION_NOT_SPECIFIED (-1)
 
 	// INSTANCE
 	AV_DEFINE_HANDLE(AvInstance);
 	AV_DEFINE_STRUCT(AvInstanceCreateInfo,
-		const char* pProjectName;
-		uint projectVersion;
+		AvProjectInfo projectInfo;
 		AvLogSettings* logSettings;
-		bool disableVulkanValidation;
+		bool disableDeviceValidation;
 		AvWindowCreateInfo windowInfo;
 	);
 	AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance);

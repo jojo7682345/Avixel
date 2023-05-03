@@ -8,15 +8,33 @@ int main(int argC, const char** argV) {
 
 	AvLogSettings logSettings = avLogSettingsDefault;
 	logSettings.printSuccess = true;
+	logSettings.printCode = true;
+	logSettings.printType = false;
+	logSettings.printFunc = false;
+	logSettings.printType = false;
+	logSettings.printError = false;
+	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
+	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
 
 	AvWindowCreateInfo windowInfo = {};
+	windowInfo.sType = AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO;
+	windowInfo.fullscreen = false;
+	windowInfo.resizable = false;
+	windowInfo.width = 1280;
+	windowInfo.height = 720;
+	windowInfo.x = AV_WINDOW_POSITION_NOT_SPECIFIED;
+	windowInfo.y = AV_WINDOW_POSITION_NOT_SPECIFIED;
+	windowInfo.title = "window";
 
+	AvProjectInfo projectInfo = {};
+	projectInfo.pProjectName = "GRAPHICS_UTILITIES_TEST";
+	projectInfo.projectVersion = AV_VERSION(1, 0);
 
 	AvInstanceCreateInfo instanceInfo = {};
-	instanceInfo.pProjectName = "GRAPHICS_UTILITIES_TEST";
-	instanceInfo.projectVersion = AV_VERSION(1, 0);
+	instanceInfo.sType = AV_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+	instanceInfo.projectInfo = projectInfo;
 	instanceInfo.logSettings = &logSettings;
-	instanceInfo.disableVulkanValidation = false;
+	instanceInfo.disableDeviceValidation = false;
 	instanceInfo.windowInfo = windowInfo;
 
 	avAssert(
@@ -24,6 +42,8 @@ int main(int argC, const char** argV) {
 		AV_SUCCESS,
 		"instance creation"
 	);
+
+	avLog(AV_DEBUG, "loop");
 
 	avInstanceDestroy(instance);
 	

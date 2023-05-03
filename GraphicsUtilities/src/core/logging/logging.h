@@ -13,3 +13,12 @@ extern AvLogLevel AV_LOG_LEVEL;
 
 void setLogSettings(AvLogSettings settings);
 void setProjectDetails(const char* projectName, uint version);
+
+typedef enum ValidationMessageType {
+	VALIDATION_MESSAGE_TYPE_DEVICE_ADDRESS,
+	VALIDATION_MESSAGE_TYPE_GENERAL,
+	VALIDATION_MESSAGE_TYPE_VALIDATION,
+	VALIDATION_MESSAGE_TYPE_PERFORMANCE,
+}ValidationMessageType;
+
+void logDeviceValidation(const char* renderer, AvLogLevel level, ValidationMessageType type, const char* message);

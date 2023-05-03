@@ -1,6 +1,8 @@
 #include "logging.h"
+#include <time.h>
 
 AvLogLevel AV_LOG_LEVEL = AV_LOG_LEVEL_DEFAULT;
+AvLogLevel AV_VALIDATION_LEVEL = AV_VALIDATION_LEVEL_DEFAULT;
 uint AV_LOG_LINE = AV_LOG_LINE_DEFAULT;
 uint AV_LOG_FILE = AV_LOG_FILE_DEFAULT;
 uint AV_LOG_FUNC = AV_LOG_FUNC_DEFAULT;
@@ -8,6 +10,7 @@ uint AV_LOG_PROJECT = AV_LOG_PROJECT_DEFAULT;
 uint AV_LOG_TIME = AV_LOG_TIME_DEFAULT;
 uint AV_LOG_TYPE = AV_LOG_TYPE_DEFAULT;
 uint AV_LOG_ERROR = AV_LOG_ERROR_DEFAULT;
+uint AV_LOG_CODE = AV_LOG_CODE_DEFAULT;
 AvAssertLevel AV_ASSERT_LEVEL = AV_ASSERT_LEVEL_DEFAULT;
 
 char AV_LOG_PROJECT_NAME[64] = "PROJECT_NAME_NOT_SPECIFIED";
@@ -23,10 +26,13 @@ const AvLogSettings avLogSettingsDefault = {
 	.printType = AV_LOG_TYPE_DEFAULT,
 	.printError = AV_LOG_ERROR_DEFAULT,
 	.assertLevel = AV_ASSERT_LEVEL_DEFAULT,
+	.printCode = AV_LOG_CODE_DEFAULT,
+	.validationLevel = AV_VALIDATION_LEVEL_DEFAULT
 };
 
 void setLogSettings(AvLogSettings settings) {
 	AV_LOG_LEVEL = settings.level;
+	AV_VALIDATION_LEVEL = settings.validationLevel;
 	AV_LOG_LINE = settings.printLine;
 	AV_LOG_FILE = settings.printFile;
 	AV_LOG_FUNC = settings.printFunc;
@@ -35,6 +41,7 @@ void setLogSettings(AvLogSettings settings) {
 	AV_LOG_TYPE = settings.printType;
 	AV_LOG_ERROR = settings.printError;
 	AV_ASSERT_LEVEL = settings.assertLevel;
+	AV_LOG_CODE = settings.printCode;
 }
 
 void setProjectDetails(const char* projectName, uint version) {
@@ -45,9 +52,57 @@ void setProjectDetails(const char* projectName, uint version) {
 	AV_LOG_PROJECT_VERSION = version;
 }
 
+void logDeviceValidation(const char* renderer, AvLogLevel level, ValidationMessageType type, const char* message) {
+	if ((uint)AV_VALIDATION_LEVEL > level) {
+		return;
+	}
+
+	fprintf(stdout, ANSI_COLOR_RESET"["ANSI_COLOR_CYAN"%s"ANSI_COLOR_RESET"]", renderer);
+
+	switch (type) {
+	case VALIDATION_MESSAGE_TYPE_DEVICE_ADDRESS:
+		fprintf(stdout, ANSI_COLOR_RESET"["ANSI_COLOR_YELLOW"address"ANSI_COLOR_RESET"]");
+		break;
+	case VALIDATION_MESSAGE_TYPE_GENERAL:
+		fprintf(stdout, ANSI_COLOR_RESET"["ANSI_COLOR_CYAN"general"ANSI_COLOR_RESET"]");
+		break;
+	case VALIDATION_MESSAGE_TYPE_VALIDATION:
+		fprintf(stdout, ANSI_COLOR_RESET"["ANSI_COLOR_RED"validation"ANSI_COLOR_RESET"]");
+		break;
+	case VALIDATION_MESSAGE_TYPE_PERFORMANCE:
+		fprintf(stdout, ANSI_COLOR_RESET"["ANSI_COLOR_BLUE"performance"ANSI_COLOR_RESET"]");
+		break;
+	}
+	fprintf(stdout, " -> %s\n", message);
+
+}
+
 void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 	//message
 	const char* message;
+
+	char error_code[12] = { 0 };
+	char error_type = 'S';
+	uint error_num = result;
+	if ((result & AV_DEBUG) == AV_DEBUG) {
+		error_type = 'D';
+		error_num = result & (~AV_DEBUG);
+	}
+	if ((result & AV_INFO) == AV_INFO) {
+		error_type = 'I';
+		error_num = result & (~AV_INFO);
+	}
+	if ((result & AV_WARNING) == AV_WARNING) {
+		error_type = 'W';
+		error_num = result & (~AV_WARNING);
+	}
+	if ((result & AV_ERROR) == AV_ERROR) {
+		error_type = 'E';
+		error_num = result & (~AV_ERROR);
+	}
+	sprintf_s(error_code, 11, "%c%i", error_type, error_num);
+
+	bool unknownCode = false;
 
 	switch (result) {
 	case AV_SUCCESS:
@@ -91,7 +146,9 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 		message = "unspecified callback";
 		break;
 	default:
-		message = "unknown";
+
+		message = error_code;
+		unknownCode = true;
 		break;
 	}
 
@@ -123,6 +180,27 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 		}
 		fprintf(fstream, "[%s]", result_level);
 	}
+	if (AV_LOG_CODE) {
+		const char* color = "";
+		switch (error_type) {
+		case 'S':
+			color = ANSI_COLOR_GREEN;
+			break;
+		case 'D':
+			color = ANSI_COLOR_BLUE;
+			break;
+		case 'I':
+			color = ANSI_COLOR_RESET;
+			break;
+		case 'W':
+			color = ANSI_COLOR_YELLOW;
+			break;
+		case 'E':
+			color = ANSI_COLOR_RED;
+			break;
+		}
+		fprintf(fstream, "[%s%s"ANSI_COLOR_RESET"]", color, error_code);
+	}
 	if (AV_LOG_PROJECT) {
 		fprintf(fstream, "[%s v%i.%i]", AV_LOG_PROJECT_NAME, AV_LOG_PROJECT_VERSION >> 16, AV_LOG_PROJECT_VERSION & 0xffff);
 	}
@@ -130,12 +208,12 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 		fprintf(fstream, "[func: %s]", func);
 	}
 	if (AV_LOG_LINE) {
-		fprintf(fstream, "[line %lu]", line);
+		fprintf(fstream, "[line %llu]", line);
 	}
 	if (AV_LOG_FILE) {
 		fprintf(fstream, "[file: %s]", file);
 	}
-	if (AV_LOG_ERROR) {
+	if (AV_LOG_ERROR && (!unknownCode || !AV_LOG_CODE)) {
 		fprintf(fstream, " %s", message);
 	}
 
@@ -147,7 +225,7 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 
 void avLog_(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 
-	if ((uint)result < AV_LOG_LEVEL) {
+	if ((uint)result < (uint)AV_LOG_LEVEL) {
 		return;
 	}
 
@@ -163,10 +241,10 @@ void avAssert_(AvResult result, AvResult valid, AV_LOCATION_ARGS, const char* ms
 	}
 
 	printTags(result, line, file, func, fstream, msg);
-	fprintf(fstream, "assert -> ");
+	fprintf(fstream, ANSI_COLOR_YELLOW"assert"ANSI_COLOR_RESET" -> ");
 	fprintf(fstream, "%s\n", msg);
 
-	if (result >= AV_ASSERT_LEVEL && result) {
+	if (result >= (uint)AV_ASSERT_LEVEL && result) {
 		abort();
 	}
 }
