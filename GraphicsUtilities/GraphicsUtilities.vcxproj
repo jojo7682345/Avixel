@@ -11,17 +11,25 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\AvUiParser.h" />
     <ClInclude Include="include\GraphicsUtilities.h" />
+    <ClInclude Include="src\core\components\component.h" />
     <ClInclude Include="src\core\core.h" />
     <ClInclude Include="src\core\logging\logging.h" />
+    <ClInclude Include="src\core\positioner\positioner.h" />
     <ClInclude Include="src\core\renderer\renderer.h" />
     <ClInclude Include="src\core\util\util.h" />
+    <ClInclude Include="src\parser\parser.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\core.c" />
     <ClCompile Include="src\core\logging\logging.c" />
     <ClCompile Include="src\core\renderer\vulkanCore\vulkanCore.c" />
     <ClCompile Include="src\core\util\util.c" />
+    <ClCompile Include="src\parser\parser.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="include\AvGraphicsCore.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>

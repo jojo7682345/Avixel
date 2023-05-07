@@ -43,7 +43,6 @@ const char** displaySurfaceEnumerateExtensions(AvInstance instance, uint* count)
 AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo windowCreateInfo, WindowProperties* windowProperties, Window* window);
 void displaySurfaceDestroyWindow(AvInstance instance, Window window);
 
-
 // render instance
 typedef struct RenderInstanceCreateInfo {
 	AvProjectInfo projectInfo;

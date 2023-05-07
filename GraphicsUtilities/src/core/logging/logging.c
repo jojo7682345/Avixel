@@ -120,7 +120,6 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 	case AV_ERROR:
 		message = "error";
 		break;
-
 	case AV_OUT_OF_BOUNDS:
 		message = "out of bounds";
 		break;
@@ -145,8 +144,10 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 	case AV_UNSPECIFIED_CALLBACK:
 		message = "unspecified callback";
 		break;
+	case AV_TEST_ERROR:
+		message = "test error";
+		break;
 	default:
-
 		message = error_code;
 		unknownCode = true;
 		break;

@@ -7,3 +7,28 @@ A GUI library in written in C using Vulkan and GLFW
  - Migrate project from Visual Studio
  - Linux and rpi support
  - Add embedded system support (replace vulkan renderer with cpu renderer based on platform)
+
+## Tasks
+- [ ] Renderer
+    - [ ] Render rectangles
+        - [ ] Basic Transform buffer input
+        - [ ] Basic Mesh input
+        - [ ] Basic Shaders
+        - [ ] Color input
+    - [ ] Render images
+        - [ ] Image loading
+        - [ ] Storing images on gpu
+    - [ ] Render text
+        - [ ] font loading
+        - [ ] font rendering
+- [ ] Positioner
+    - [ ] Create Layouts 
+        - [ ] Make absolute positioner
+        - [ ] Make grid positioner
+        - [ ] Make split positioner
+        - [ ] *Make floating positioner*
+    - [ ] Create Positioning Chain
+- [ ] Component handler
+    - [ ] Component creation
+    - [ ] Component destruction
+    - [ ] Component pooling

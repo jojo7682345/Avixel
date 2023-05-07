@@ -1,6 +1,23 @@
+
 #include <GraphicsUtilities/GraphicsUtilities.h>
 #define MU_DEBUG
 #include <MemoryUtilities/MemoryUtilities.h>
+
+void buildInterface(AvInstance instance) {
+	AvInterface interface;
+	
+	AvInterfaceLoadFileInfo loadInfo = { 0 };
+	avInterfaceLoadFromFile(loadInfo, &interface, "./assets/testinterface.ui");
+	
+	AvInterfaceLoadDataInfo dataInfo = { 0 };
+	avInterfaceLoadFromData(dataInfo, &interface, nullptr /*ptr to binary data*/, 0);
+
+
+	AvWindow mainWindow;
+	avInstanceGetPrimaryWindow(instance, &mainWindow);
+	avWindowSetInterface(mainWindow, instance, interface);
+}
+
 
 int main(int argC, const char** argV) {
 
@@ -8,11 +25,10 @@ int main(int argC, const char** argV) {
 
 	AvLogSettings logSettings = avLogSettingsDefault;
 	logSettings.printSuccess = true;
-	logSettings.printCode = true;
-	logSettings.printType = false;
+	logSettings.printCode = false;
+	logSettings.printType = true;
 	logSettings.printFunc = false;
-	logSettings.printType = false;
-	logSettings.printError = false;
+	logSettings.printError = true;
 	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
 	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
 
@@ -43,7 +59,8 @@ int main(int argC, const char** argV) {
 		"instance creation"
 	);
 
-	avLog(AV_DEBUG, "loop");
+
+	buildInterface(instance);
 
 	avInstanceDestroy(instance);
 	
