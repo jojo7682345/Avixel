@@ -62,6 +62,12 @@ bool isHexNumber(char chr) {
 	return false;
 }
 
+	if (chr >= '0' && chr <= '9') {
+		return true;
+	}
+	return false;
+}
+
 bool isLowerCaseLetter(char chr) {
 	if (chr >= 'a' && chr <= 'z') {
 		return true;
@@ -135,12 +141,6 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				// skip to next line
 				while ((c = buffer[i++]) != '\n' && i <= size) {
 					;;
-				};
-				i--;
-				continue;
-			}
-			break;
-		case '#':
 		{
 			bool isColor = false;
 
@@ -173,6 +173,12 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				currentToken->type = TOKEN_TYPE_OPERATION;	// Sets the type of the token
 				currentToken = appendToken(currentToken);   // Appends the token to the list
 			}
+			currentToken->len = 1;
+			currentToken->type = TOKEN_TYPE_PREPROCESSOR;
+			currentToken = appendToken(currentToken);
+
+			currentToken->str = buffer + ++i;
+			currentToken->type = TOKEN_TYPE_NAME;
 
 			break;
 		}
