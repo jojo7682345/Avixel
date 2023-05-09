@@ -147,6 +147,24 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 	case AV_TEST_ERROR:
 		message = "test error";
 		break;
+	case AV_NOT_INITIALIZED:
+		message = "not initialized";
+		break;
+	case AV_NOT_IMPLEMENTED:
+		message = "not implemented";
+		break;
+	case AV_NOT_FOUND:
+		message = "not found";
+		break;
+	case AV_ALREADY_INITIALIZED:
+		message = "already initialized";
+		break;
+	case AV_ALREADY_EXISTS:
+		message = "already exists";
+		break;
+	case AV_PARSE_ERROR:
+		message = "parse error";
+		break;
 	default:
 		message = error_code;
 		unknownCode = true;

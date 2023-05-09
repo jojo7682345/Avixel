@@ -361,6 +361,4 @@ MigrationBackup/
 
 # Fody - auto-generated XML schema
 FodyWeavers.xsd
-/GraphicsUtilitiesTest/GraphicsUtilitiesTest.vcxproj.filters
-/GraphicsUtilitiesTest/GraphicsUtilitiesTest.vcxproj
-/.gitignore
+
