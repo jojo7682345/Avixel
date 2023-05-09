@@ -10,12 +10,12 @@ void buildInterface(AvInstance instance) {
 	avInterfaceLoadFromFile(loadInfo, &interface, "./assets/testinterface.ui");
 	
 	AvInterfaceLoadDataInfo dataInfo = { 0 };
-	avInterfaceLoadFromData(dataInfo, &interface, nullptr /*ptr to binary data*/, 0);
+	//avInterfaceLoadFromData(dataInfo, &interface, nullptr /*ptr to binary data*/, 0);
 
 
 	AvWindow mainWindow;
-	avInstanceGetPrimaryWindow(instance, &mainWindow);
-	avWindowSetInterface(mainWindow, instance, interface);
+	//avInstanceGetPrimaryWindow(instance, &mainWindow);
+	//avWindowSetInterface(mainWindow, instance, interface);
 
 	
 }

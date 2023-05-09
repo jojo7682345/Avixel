@@ -90,9 +90,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\..\..\SDK\CCR\include\GraphicsUtilities\GraphicsUtilities.h" />
-  </ItemGroup>
-  <ItemGroup>
     <None Include="..\README.md" />
     <None Include="assets\testinterface.ui" />
   </ItemGroup>
