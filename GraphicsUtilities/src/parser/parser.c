@@ -1,14 +1,14 @@
 #include "parser.h"
 
 typedef enum TokenType {
-	TOKEN_TYPE_DATA,
+	TOKEN_TYPE_OPERATION,
 	TOKEN_TYPE_NAME,
 	TOKEN_TYPE_OPEN,
 	TOKEN_TYPE_CLOSE,
 	TOKEN_TYPE_ASSIGNMENT,
 	TOKEN_TYPE_NUMBER,
 	TOKEN_TYPE_END,
-	TOKEN_TYPE_EXPORT,
+	TOKEN_TYPE_CONST,
 	TOKEN_TYPE_REFERENCE,
 	TOKEN_TYPE_COLOR,
 	TOKEN_TYPE_ACCESS,
@@ -36,17 +36,64 @@ Token* appendToken(Token* currentToken) {
 	return newToken;
 }
 
-bool isNameCharacter(char chr, bool firstChar) {
+bool isHexNumber(char chr) {
+	if (isNumber(chr)) {
+		return true;
+	}
+	if (chr >= 'a' && chr <= 'f') {
+		return true;
+	}
+	if (chr >= 'A' && chr <= 'F') {
+		return true;
+	}
+	return false;
+}
+
+bool isNumber(char chr) {
+	if (chr >= '0' && chr <= '9') {
+		return true;
+	}
+	return false;
+}
+
+bool isLowerCaseLetter(char chr) {
+	if (chr >= 'a' && chr <= 'z') {
+		return true;
+	}
+	return false;
+}
+
+bool isUpperCaseLetter(char chr) {
 	if (chr >= 'A' && chr <= 'Z') {
 		return true;
 	}
-	if (chr >= 'a' && chr <= 'z') {
+	return false;
+}
+
+bool isLetter(char chr) {
+	if (isUpperCaseLetter(chr)) {
+		return true;
+	}
+	if (isLowerCaseLetter(chr)) {
+		return true;
+	}
+	return false;
+}
+
+bool isNameCharacter(char chr, bool firstChar) {
+	if (isUpperCaseLetter(chr)) {
+		return true;
+	}
+	if (isLowerCaseLetter(chr)) {
+		return true;
+	}
+	if (chr == '_') {
 		return true;
 	}
 	if (firstChar) {
 		return false;
 	}
-	if (chr >= '0' && chr <= '9') {
+	if (isNumber(chr)) {
 		return true;
 	}
 	return false;
@@ -81,10 +128,10 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				continue;
 			}
 			break;
-		case '%':
+		case '#':
 			currentToken->str = buffer + i;
 			currentToken->len = 1;
-			currentToken->type = TOKEN_TYPE_DATA;
+			currentToken->type = TOKEN_TYPE_PREPROCESSOR;
 			currentToken = appendToken(currentToken);
 
 			currentToken->str = buffer + ++i;

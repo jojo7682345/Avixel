@@ -16,6 +16,8 @@ void buildInterface(AvInstance instance) {
 	AvWindow mainWindow;
 	avInstanceGetPrimaryWindow(instance, &mainWindow);
 	avWindowSetInterface(mainWindow, instance, interface);
+
+	
 }
 
 

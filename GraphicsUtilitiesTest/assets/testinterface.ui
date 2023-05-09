@@ -2,14 +2,17 @@
 // V1.0
 // 7-5-2023
 
-%data(
+#include "./test.ui"
+#define SIZE 42
+
+Window(
 	width = 1280;
 	height = 720;
 	title = "test interface";
 	resizable = true;
 	fullscreen = false;
 	
-	background_color = #000000FF;
+	backgroundColor = #000000FF;
 
 	root = $mainPanel;
 );
@@ -17,16 +20,14 @@
 @CustomButton = Rect(
 	label = Text(
 		text = "";
-		font = Consolas;
-		size = 12;
+		*font = Consolas;
+		*size = 12;
 	);
-
+	
 );
 
-
 @RedButton = CustomButton(
-	color = #FF0000FF;
-	@width;
+	*color = #FF0000FF;
 );
 
 mainPanel = Rect(
@@ -53,5 +54,6 @@ testButton = RedButton(
 	label.text = "test";
 	label.font = Consolas;
 	label.size = 13;
+	onClick = $onClickFunction
 );
 
