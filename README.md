@@ -32,3 +32,9 @@ A GUI library in written in C using Vulkan and GLFW
     - [ ] Component creation
     - [ ] Component destruction
     - [ ] Component pooling
+- [ ] .ui parser
+    - [x] tokenizer
+    - [ ] lexer
+    - [ ] preprocessor
+    - [ ] scemantic analysis
+    - [ ] operation order generation
