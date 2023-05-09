@@ -36,6 +36,13 @@ Token* appendToken(Token* currentToken) {
 	return newToken;
 }
 
+bool isNumber(char chr) {
+	if (chr >= '0' && chr <= '9') {
+		return true;
+	}
+	return false;
+}
+
 bool isHexNumber(char chr) {
 	if (isNumber(chr)) {
 		return true;
@@ -49,12 +56,6 @@ bool isHexNumber(char chr) {
 	return false;
 }
 
-bool isNumber(char chr) {
-	if (chr >= '0' && chr <= '9') {
-		return true;
-	}
-	return false;
-}
 
 bool isLowerCaseLetter(char chr) {
 	if (chr >= 'a' && chr <= 'z') {
@@ -131,7 +132,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 		case '#':
 			currentToken->str = buffer + i;
 			currentToken->len = 1;
-			currentToken->type = TOKEN_TYPE_PREPROCESSOR;
+			currentToken->type = TOKEN_TYPE_OPERATION;
 			currentToken = appendToken(currentToken);
 
 			currentToken->str = buffer + ++i;

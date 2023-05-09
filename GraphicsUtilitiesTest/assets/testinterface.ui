@@ -1,7 +1,7 @@
 // Test interface
 // V1.0
 // 7-5-2023
-
+#once
 #include "./test.ui"
 #define SIZE 42
 
@@ -41,12 +41,12 @@ nestedPanel = Rect(
 	parent = $mainPanel;
 	x = 1;
 	y = 0;
-	color = #FFFFFFFF
-	layout = absolute
+	color = #FFFFFFFF;
+	layout = absolute;
 );
 
-testButton = RedButton(
-	parent = $nestedPanel
+testButton[5] = RedButton(
+	parent = $nestedPanel;
 	x = 32;
 	y = 32;
 	width = 64;
@@ -54,6 +54,6 @@ testButton = RedButton(
 	label.text = "test";
 	label.font = Consolas;
 	label.size = 13;
-	onClick = $onClickFunction
+	onClick = $onClickFunction;
 );
 
