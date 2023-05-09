@@ -62,12 +62,6 @@ bool isHexNumber(char chr) {
 	return false;
 }
 
-	if (chr >= '0' && chr <= '9') {
-		return true;
-	}
-	return false;
-}
-
 bool isLowerCaseLetter(char chr) {
 	if (chr >= 'a' && chr <= 'z') {
 		return true;
@@ -141,6 +135,12 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				// skip to next line
 				while ((c = buffer[i++]) != '\n' && i <= size) {
 					;;
+				};
+				i--;
+				continue;
+			}
+			break;
+		case '#':
 		{
 			bool isColor = false;
 
@@ -166,19 +166,13 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 					avAssert(AV_PARSE_ERROR, AV_SUCCESS, "invalid color format");
 					return AV_PARSE_ERROR;
 				}
-				i-=2;
+				i -= 2;
 			} else {
 				currentToken->str = buffer + i;				// Looks current token
 				currentToken->len = 1;						// Sets the length of the token
 				currentToken->type = TOKEN_TYPE_OPERATION;	// Sets the type of the token
 				currentToken = appendToken(currentToken);   // Appends the token to the list
 			}
-			currentToken->len = 1;
-			currentToken->type = TOKEN_TYPE_PREPROCESSOR;
-			currentToken = appendToken(currentToken);
-
-			currentToken->str = buffer + ++i;
-			currentToken->type = TOKEN_TYPE_NAME;
 
 			break;
 		}
@@ -223,14 +217,14 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				if (c == '"') {
 					break;
 				}
-				if (!isTextCharacter(c)){
+				if (!isTextCharacter(c)) {
 					avAssert(AV_PARSE_ERROR, AV_SUCCESS, "invalid string delimiter");
 				}
 				length++;
 			}
 			currentToken->len = length;
 			currentToken = appendToken(currentToken);
-			i --;
+			i--;
 			break;
 		case ';':
 			currentToken->str = buffer + i;
@@ -270,7 +264,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				while (isNumber(buffer[i++]) && i <= size) {
 					currentToken->len++;
 				}
-				i-=2;
+				i -= 2;
 				currentToken = appendToken(currentToken);
 			} else if (isNameCharacter(c)) {
 				currentToken->str = buffer + i;
@@ -279,7 +273,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				while (isNameCharacter(buffer[i++]) && i <= size) {
 					currentToken->len++;
 				}
-				i-=2;
+				i -= 2;
 				currentToken = appendToken(currentToken);
 			} else {
 				char errorMessage[64];
@@ -304,57 +298,57 @@ void printTokens(Token* token) {
 	while (token) {
 		const char* type;
 		switch (token->type) {
-			case TOKEN_TYPE_OPERATION:
-				type = "OPERATION";
-				break;
-			case TOKEN_TYPE_OPEN:
-				type = "OPEN";
-				break;
-			case TOKEN_TYPE_CLOSE:
-				type = "CLOSE";
-				break;
-			case TOKEN_TYPE_ASSIGNMENT:
-				type = "ASSIGNMENT";
-				break;
-			case TOKEN_TYPE_CONST:
-				type = "CONST";
-				break;
-			case TOKEN_TYPE_REFERENCE:
-				type = "REFERENCE";
-				break;
-			case TOKEN_TYPE_TEXT:
-				type = "TEXT";
-				break;
-			case TOKEN_TYPE_END:
-				type = "END";
-				break;
-			case TOKEN_TYPE_COLOR:
-				type = "COLOR";
-				break;
-			case TOKEN_TYPE_PROTOTYPE:
-				type = "PROTOTYPE";
-				break;
-			case TOKEN_TYPE_NAME:
-				type = "NAME";
-				break;
-			case TOKEN_TYPE_NUMBER:
-				type = "NUMBER";
-				break;
-			case TOKEN_TYPE_END_OF_FILE:
-				type = "END_OF_FILE";
-				break;
-			case TOKEN_TYPE_ACCESS:
-				type = "ACCESS";
-				break;
-			case TOKEN_TYPE_POOL_OPEN:
-				type = "POOL_OPEN";
-				break;
-			case TOKEN_TYPE_POOL_CLOSE:
-				type = "POOL_CLOSE";
-				break;
-			default:
-				type = "UNKNOWN";
-				break;
+		case TOKEN_TYPE_OPERATION:
+			type = "OPERATION";
+			break;
+		case TOKEN_TYPE_OPEN:
+			type = "OPEN";
+			break;
+		case TOKEN_TYPE_CLOSE:
+			type = "CLOSE";
+			break;
+		case TOKEN_TYPE_ASSIGNMENT:
+			type = "ASSIGNMENT";
+			break;
+		case TOKEN_TYPE_CONST:
+			type = "CONST";
+			break;
+		case TOKEN_TYPE_REFERENCE:
+			type = "REFERENCE";
+			break;
+		case TOKEN_TYPE_TEXT:
+			type = "TEXT";
+			break;
+		case TOKEN_TYPE_END:
+			type = "END";
+			break;
+		case TOKEN_TYPE_COLOR:
+			type = "COLOR";
+			break;
+		case TOKEN_TYPE_PROTOTYPE:
+			type = "PROTOTYPE";
+			break;
+		case TOKEN_TYPE_NAME:
+			type = "NAME";
+			break;
+		case TOKEN_TYPE_NUMBER:
+			type = "NUMBER";
+			break;
+		case TOKEN_TYPE_END_OF_FILE:
+			type = "END_OF_FILE";
+			break;
+		case TOKEN_TYPE_ACCESS:
+			type = "ACCESS";
+			break;
+		case TOKEN_TYPE_POOL_OPEN:
+			type = "POOL_OPEN";
+			break;
+		case TOKEN_TYPE_POOL_CLOSE:
+			type = "POOL_CLOSE";
+			break;
+		default:
+			type = "UNKNOWN";
+			break;
 		}
 		printf("%s: %.*s\n", type, token->len, token->str);
 		token = token->next;
