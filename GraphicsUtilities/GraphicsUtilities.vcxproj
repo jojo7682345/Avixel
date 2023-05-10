@@ -64,26 +64,26 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <TargetName>$(ProjectName)Debug</TargetName>
-    <OutDir>C:\SDK\CCR\lib\</OutDir>
+    <OutDir>$(CCR_SDK)\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>$(CCR_SDK)\include;$(GLFW_SDK)\include;$(VULKAN_SDK)\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>C:\SDK\CCR\lib\</OutDir>
+    <OutDir>$(CCR_SDK)\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>$(CCR_SDK)\include;$(GLFW_SDK)\include;$(VULKAN_SDK)\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Lib>
-      <AdditionalLibraryDirectories>C:\SDK\CCR\lib;C:\SDK\glfw-3.3.8.bin.WIN64\lib-vc2022;C:\SDK\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CCR_SDK)\lib;$(GLFW_SDK)\lib-vc2022;$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <AdditionalDependencies>glfw3.lib;vulkan-1.lib;MemoryUtilitiesDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PreBuildEvent>
-      <Command>IF exist "C:\SDK\CCR\include\$(ProjectName)" ( echo include for $(ProjectName) already exists, no action needed ) ELSE ( mkdir "C:\SDK\CCR\include\$(ProjectName)" &amp;&amp; echo include for $(ProjectName) created)</Command>
+      <Command>IF exist "$(CCR_SDK)\include\$(ProjectName)" ( echo include for $(ProjectName) already exists, no action needed ) ELSE ( mkdir "$(CCR_SDK)\include\$(ProjectName)" &amp;&amp; echo include for $(ProjectName) created)</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy include C:\SDK\CCR\include\$(ProjectName) /e /y</Command>
+      <Command>xcopy include $(CCR_SDK)\include\$(ProjectName) /e /y</Command>
     </PostBuildEvent>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -94,15 +94,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Lib>
-      <AdditionalLibraryDirectories>C:\SDK\CCR\lib;C:\SDK\glfw-3.3.8.bin.WIN64\lib-vc2022;C:\SDK\VulkanSDK\1.3.243.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(CCR_SDK)\lib;$(GLFW_SDK)\lib-vc2022;$(VULKAN_SDK)\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <LinkTimeCodeGeneration>false</LinkTimeCodeGeneration>
       <AdditionalDependencies>glfw3.lib;vulkan-1.lib;MemoryUtilitiesDebug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <PreBuildEvent>
-      <Command>mkdir C:\SDK\CCR\include\$(ProjectName)</Command>
+      <Command>IF exist "$(CCR_SDK)\include\$(ProjectName)" ( echo include for $(ProjectName) already exists, no action needed ) ELSE ( mkdir "$(CCR_SDK)\include\$(ProjectName)" &amp;&amp; echo include for $(ProjectName) created)</Command>
     </PreBuildEvent>
     <PostBuildEvent>
-      <Command>xcopy include C:\SDK\CCR\include\$(ProjectName) /e /y</Command>
+      <Command>xcopy include $(CCR_SDK)\include\$(ProjectName) /e /y</Command>
     </PostBuildEvent>
     <ClCompile>
       <LanguageStandard>stdcpp20</LanguageStandard>
