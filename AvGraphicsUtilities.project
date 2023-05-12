@@ -1,0 +1,40 @@
+AvGraphicsUtilities {
+	type: LIB
+	flags: -Wall -O2
+	source: [
+		src
+	]
+	include: [
+		include
+		$(CCR_SDK)\include
+		$(VULKAN_SDK)\Include
+		$(GLFW_SDK)\include
+		$(VC_IncludePath)
+		$(WindowsSDK_IncludePath)
+	]
+	libdir: [
+		lib
+		$(CCR_SDK)\lib
+	]
+	lib: [
+		:MemoryUtilities.lib
+	]
+}
+AvGraphicsUtilitiesTest {
+	type: EXE 
+	flags: -Wall -O2
+	source: [
+		test\src
+	]
+	include: [
+		include
+		$(CCR_SDK)\include
+	]
+	libdir: [
+		lib
+		$(CCR_SDK)\lib
+	]
+	lib: [
+		:AvGraphicsUtilities.lib
+	]
+}
