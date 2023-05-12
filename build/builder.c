@@ -10,13 +10,15 @@
 #define LIB_FLAGS "rcs"
 
 #ifdef _WIN32
-#define LIB_EXTENSION ".lib"
-#define EXE_EXTENSION ".exe"
 #define DLL_EXTENSION ".dll"
+#define LIB_EXTENSION ".a"
+#define EXE_EXTENSION ".exe"
+#define COPY_COMMAND(src, dst) "xcopy",src,dst,"/E /I /y"
 #else
 #define DLL_EXTENSION ".so"
 #define LIB_EXTENSION ".a"
 #define EXE_EXTENSION ""
+#define COPY_COMMAND(src, dst) "cp","-r",src,dst
 #endif
 
 #define PROJECT_FILE ".project"
@@ -24,6 +26,7 @@
 typedef enum ProjectType {
 	PROJECT_TYPE_LIB,
 	PROJECT_TYPE_EXE,
+	PROJECT_TYPE_DLL,
 	PROJECT_TYPE_UNKNOWN,
 }ProjectType;
 
@@ -64,6 +67,9 @@ ProjectType getProjectType(const char* type) {
 	}
 	if (strcmp(str, "EXE") == 0) {
 		return PROJECT_TYPE_EXE;
+	}
+	if (strcmp(str, "DLL") == 0) {
+		return PROJECT_TYPE_DLL;
 	}
 	return PROJECT_TYPE_UNKNOWN;
 }
@@ -115,6 +121,8 @@ typedef struct Project {
 	int libdirCount;
 	char** libdir;
 	char compiler[64];
+	int exportCount;
+	char** exports;
 	void* next;
 } Project;
 
@@ -133,7 +141,30 @@ const char* subsitute(const char* str, const char* var, int begin, int end) {
 	return buffer;
 }
 
-const char* extractEnv(const char* str) {
+const char* getCustomEnv(const char* env, Project project) {
+
+	if (strcmp(env, "OUTPUT") == 0) {
+		const char* output;
+		switch (project.type) {
+		case PROJECT_TYPE_LIB:
+			output = PATH("lib", CONCAT("lib", project.name, LIB_EXTENSION));
+			break;
+		case PROJECT_TYPE_DLL:
+			output = PATH("lib", CONCAT(project.name, DLL_EXTENSION));
+			break;
+		case PROJECT_TYPE_EXE:
+			output = PATH("bin", CONCAT(project.name, EXE_EXTENSION));
+			break;
+		}
+		return output;
+	}
+
+
+	return getenv(env);
+
+}
+
+const char* extractEnv(const char* str, Project project) {
 	for (int i = 0; i < strlen(str); i++) {
 		char c = str[i];
 		if (c != '$') {
@@ -155,13 +186,13 @@ const char* extractEnv(const char* str) {
 		char* env = (char*)malloc(length + 1);
 		memset(env, 0, length + 1);
 		memcpy(env, str + start, length);
-		const char* envVar = getenv(env);
+		const char* envVar = getCustomEnv(env, project);
 		free(env);
 		if (!envVar) {
 			envVar = "";
 		}
 		const char* sub = subsitute(str, envVar, preStart, end);
-		const char* extracted = extractEnv(sub);
+		const char* extracted = extractEnv(sub,project);
 		return extracted;
 	}
 	return str;
@@ -192,10 +223,10 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 				}
 			}
 		}
-	});
+		});
 }
 
-void link(const char** compiledFiles, size_t* compiledCount, Project project) {
+const char* link(const char** compiledFiles, size_t* compiledCount, Project project) {
 
 	const char* objectFiles = "";
 	for (size_t i = 0; i < *compiledCount; i++) {
@@ -203,45 +234,70 @@ void link(const char** compiledFiles, size_t* compiledCount, Project project) {
 	}
 
 	switch (project.type) {
-		case PROJECT_TYPE_EXE:
-		{
-			const char* lib = "";
-			for (int i = 0; i < project.s_libCount; i++) {
-				const char* inc = extractEnv(project.s_libs[i]);
-				lib = JOIN(" -l", lib, CONCAT(inc,""));
-			}
-
-			const char* dll = "";
-			for (int i = 0; i < project.d_libCount; i++) {
-				const char* inc = extractEnv(project.d_libs[i]);
-				dll = JOIN(" -l", dll, CONCAT(inc, ""));
-			}
-
-			const char* libDir = "";
-			for (int i = 0; i < project.libdirCount; i++) {
-				const char* inc = extractEnv(project.libdir[i]);
-				libDir = JOIN(" -L", libDir, inc);
-			}
-
-			if (!IS_DIR("bin")) {
-				MKDIRS("bin");
-			}
-
-			CMD(project.compiler, CFLAGS, libDir, lib, dll, objectFiles, "-o", PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
-			break;
+	case PROJECT_TYPE_EXE:
+	{
+		const char* lib = "";
+		for (int i = 0; i < project.s_libCount; i++) {
+			const char* inc = extractEnv(project.s_libs[i],project);
+			lib = JOIN(" -l", lib, CONCAT(inc, ""));
 		}
-		case PROJECT_TYPE_LIB:
-		{
 
+		//const char* dll = "";
+		//for (int i = 0; i < project.d_libCount; i++) {
+		//	const char* inc = extractEnv(project.d_libs[i]);
+		//	dll = JOIN(" -l", dll, CONCAT(inc, ""));
+		//}
 
-			if (!IS_DIR("lib")) {
-				MKDIRS("lib");
-			}
-			CMD(ARCHIVER, LIB_FLAGS, "-o", PATH("lib", CONCAT(project.name, LIB_EXTENSION)), objectFiles);
-			break;
+		const char* libDir = "";
+		for (int i = 0; i < project.libdirCount; i++) {
+			const char* inc = extractEnv(project.libdir[i],project);
+			libDir = JOIN(" -L", libDir, inc);
 		}
+
+		if (!IS_DIR("bin")) {
+			MKDIRS("bin");
+		}
+
+		const char* output = CONCAT(project.name, EXE_EXTENSION);
+
+		CMD(project.compiler, project.flags, "-o", PATH("bin", output), objectFiles, libDir, lib);
+		return output;
 	}
+	case PROJECT_TYPE_LIB:
+	{
 
+		if (!IS_DIR("lib")) {
+			MKDIRS("lib");
+		}
+		const char* output = CONCAT("lib", project.name, LIB_EXTENSION);
+		CMD(ARCHIVER, LIB_FLAGS, "-o", PATH("lib", output), objectFiles);
+		return output;
+	}
+	case PROJECT_TYPE_DLL:
+	{
+		const char* lib = "";
+		for (int i = 0; i < project.s_libCount; i++) {
+			const char* inc = extractEnv(project.s_libs[i],project);
+			lib = JOIN(" -l", lib, CONCAT(inc, ""));
+		}
+
+		const char* libDir = "";
+		for (int i = 0; i < project.libdirCount; i++) {
+			const char* inc = extractEnv(project.libdir[i],project);
+			libDir = JOIN(" -L", libDir, inc);
+		}
+
+		if (!IS_DIR("lib")) {
+			MKDIRS("lib");
+		}
+
+		const char* output = CONCAT(project.name, DLL_EXTENSION);
+
+		CMD(project.compiler, project.flags, "-shared", "-o", PATH("lib", output), objectFiles, libDir, lib);
+		return output;
+	}
+	}
+	PANIC("should not reach here, invalid project type");
 }
 
 
@@ -262,6 +318,8 @@ int parseType(char c, int* index, char* value, Project* project) {
 			project->type = PROJECT_TYPE_LIB;
 		} else if (strcmp(toUppercase(value), "EXE") == 0) {
 			project->type = PROJECT_TYPE_EXE;
+		} else if (strcmp(toUppercase(value), "DLL") == 0) {
+			project->type = PROJECT_TYPE_DLL;
 		} else {
 			project->type = PROJECT_TYPE_UNKNOWN;
 		}
@@ -285,6 +343,26 @@ int parseCompiler(char c, int* index, char* value, Project* project) {
 	return 0;
 }
 
+int parseExport(char c, int* index, char* value, Project* project) {
+	if (c == '\r' || c == '\n' || c == ' ') {
+		value[*index] = '\0';
+		char** data = realloc(project->exports, sizeof(char*) * (project->exportCount + 1));
+		if (!data) {
+			PANIC("out of mem");
+		}
+		project->exports = data;
+
+		char* str = malloc(*index + 1);
+		memcpy(str, value, *index + 1);
+		project->exports[project->exportCount] = str;
+		project->exportCount++;
+		return 1;
+	}
+	value[*index] = c;
+	(*index)++;
+	return 0;
+}
+
 int parseFlags(char c, int* index, char* value, Project* project) {
 	if (c == '\r' || c == '\n') {
 		value[*index] = '\0';
@@ -299,7 +377,7 @@ int parseFlags(char c, int* index, char* value, Project* project) {
 int parseSource(char c, int* index, char* value, Project* project) {
 	if (c == '\r' || c == '\n' || c == ' ') {
 		value[*index] = '\0';
-		char** data = realloc(project->sources, project->sourceCount + 1);
+		char** data = realloc(project->sources, sizeof(char*) * (project->sourceCount + 1));
 		if (!data) {
 			PANIC("out of mem");
 		}
@@ -349,6 +427,8 @@ int parseDll(char c, int* index, char* value, Project* project) {
 		memcpy(str, value, *index + 1);
 		project->d_libs[project->d_libCount] = str;
 		project->d_libCount++;
+
+		WARN("specifing dll is deprecated, add it to the lib");
 		return 1;
 	}
 	value[*index] = c;
@@ -506,6 +586,9 @@ int parseProjectFile(char* buffer, Project* project) {
 			if (strcmp(toUppercase(property), "SOURCE") == 0) {
 				done = parseSource(c, &index, value, project);
 			}
+			if (strcmp(toUppercase(property), "EXPORT") == 0) {
+				done = parseExport(c, &index, value, project);
+			}
 			if (strcmp(toUppercase(property), "LIB") == 0) {
 				done = parseLib(c, &index, value, project);
 			}
@@ -582,10 +665,39 @@ int loadProjectFile(const char* file, Project* project) {
 	return ret;
 }
 
+int copyFile(const char* source, const char* destination) {
+	char ch = '\0';
+	FILE* fs = NULL;
+	FILE* ft = NULL;
+	fs = fopen(source, "rb");
+	if (fs == NULL) {
+		PANIC("Error in Opening the file, %s\n", source);
+		return 0;
+	}
+
+	fseek(fs, 0, SEEK_END);
+	size_t size = ftell(fs);
+	fseek(fs, 0, SEEK_SET);
+
+	unsigned char* buffer = malloc(size);
+	fread(buffer, 1, size, fs);
 
 
-int buildProject(Project project) {
-	const char* tmp = PATH(".\\build", "tmp");
+	ft = fopen(destination, "wb");
+	if (ft == NULL) {
+		PANIC("Error in Opening the file, %s\n", destination);
+		return 0;
+	}
+	fwrite(buffer, 1, size, ft);
+	free(buffer);
+	printf("File copied successfully.\n");
+	fclose(fs);
+	fclose(ft);
+	return 0;
+}
+
+int buildProject(Project project, const char* projectName) {
+	const char* tmp = PATH("build", "tmp");
 	if (!IS_DIR(tmp)) {
 		MKDIRS(tmp);
 	}
@@ -593,7 +705,7 @@ int buildProject(Project project) {
 	const char** compiledFiles = NULL;
 	size_t compiledCount = 0;
 	for (int i = 0; i < project.sourceCount; i++) {
-		const char* source = extractEnv(project.sources[i]);
+		const char* source = extractEnv(project.sources[i],project);
 
 		Cstr tempBuild = PATH(tmp, project.name);
 		if (!IS_DIR(tempBuild)) {
@@ -601,14 +713,27 @@ int buildProject(Project project) {
 		}
 		const char* include = "";
 		for (int i = 0; i < project.includeCount; i++) {
-			const char* inc = extractEnv(project.include[i]);
+			const char* inc = extractEnv(project.include[i],project);
 			include = JOIN(" -I", include, inc);
 		}
 
 		printf("%s: %s\n", project.name, source);
 
-		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount,include,project.compiler);
-		link(compiledFiles, &compiledCount, project);
+		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount, include, project.compiler);
+		const char* output = link(compiledFiles, &compiledCount, project);
+
+		if (!IS_DIR(projectName)) {
+			MKDIRS(projectName);
+		}
+		for (int i = 0; i < project.exportCount; i++) {
+			const char* export = extractEnv(project.exports[i], project);
+			if (IS_DIR(export)) {
+				CMD(COPY_COMMAND( export, PATH(projectName,FOLDERNAME(export))));
+			} else {
+				copyFile(export, PATH(projectName, output));
+			}
+		}
+		
 
 	}
 	free(compiledFiles);
@@ -616,38 +741,40 @@ int buildProject(Project project) {
 	return 0;
 }
 
-void cleanProject(Project project) {
+void cleanProject(Project project, const char* projectName) {
 	RM(PATH("build", "tmp", project.name));
+	RM(projectName);
 	switch (project.type) {
-		case PROJECT_TYPE_EXE:
-			RM(PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
-			break;
-		case PROJECT_TYPE_LIB:
-			RM(PATH("lib", CONCAT(project.name, LIB_EXTENSION)));
-			break;
+	case PROJECT_TYPE_EXE:
+		RM(PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
+		break;
+	case PROJECT_TYPE_LIB:
+		RM(PATH("lib", CONCAT(project.name, LIB_EXTENSION)));
+		break;
 	}
 }
 
 void cleanWorkspace() {
-	FOREACH_FILE_IN_DIR(file, "build\\tmp", {
-		if (isValidDir(file)) {
-			RM(PATH("build","tmp", file));
-		}
-						});
-	if (IS_DIR(PATH("build", "tmp")) ){
+	if (IS_DIR(PATH("build", "tmp"))) {
+		FOREACH_FILE_IN_DIR(file, "build\\tmp", {
+			if (isValidDir(file)) {
+				RM(PATH("build","tmp", file));
+			}
+			});
+
 		RM(PATH("build", "tmp"));
 	}
 	FOREACH_FILE_IN_DIR(file, "bin", {
 		if (isValidDir(file)) {
 			RM(PATH("bin", file));
 		}
-						});
+		});
 	FOREACH_FILE_IN_DIR(file, "lib", {
 		if (isValidDir(file)) {
 			RM(PATH("lib", file));
 		}
 
-	});
+		});
 }
 
 int processProject(const char* projectName, OperationType op) {
@@ -661,23 +788,23 @@ int processProject(const char* projectName, OperationType op) {
 	Project* p = &project;
 	while (p) {
 		switch (op) {
-			case OPERATION_TYPE_BUILD:
-				if (buildProject(*p) != 0) {
-					return -1;
-				}
-				break;
-			case OPERATION_TYPE_CLEAN:
-				cleanProject(*p);
-				break;
-			case OPERATION_TYPE_REBUILD:
-				cleanProject(*p);
-				if (buildProject(*p) != 0) {
-					return -1;
-				}
-				break;
-			case OPERATION_TYPE_CONFIGURE:
-				// TODO: implement
-				break;
+		case OPERATION_TYPE_BUILD:
+			if (buildProject(*p, NOEXT(projectName)) != 0) {
+				return -1;
+			}
+			break;
+		case OPERATION_TYPE_CLEAN:
+			cleanProject(*p, NOEXT(projectName));
+			break;
+		case OPERATION_TYPE_REBUILD:
+			cleanProject(*p, NOEXT(projectName));
+			if (buildProject(*p, NOEXT(projectName)) != 0) {
+				return -1;
+			}
+			break;
+		case OPERATION_TYPE_CONFIGURE:
+			// TODO: implement
+			break;
 		}
 		p = p->next;
 	}
@@ -704,9 +831,8 @@ int main(int argC, char* argV[]) {
 	}
 
 	if (argC == 0) {
-		if (op == OPERATION_TYPE_CLEAN ) {
+		if (op == OPERATION_TYPE_CLEAN) {
 			cleanWorkspace();
-			return 0;
 		}
 		if (op == OPERATION_TYPE_REBUILD) {
 			cleanWorkspace();
@@ -718,7 +844,7 @@ int main(int argC, char* argV[]) {
 					return -1;
 				}
 			}
-		});
+			});
 
 
 		return 0;

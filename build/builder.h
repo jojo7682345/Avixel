@@ -110,6 +110,8 @@ Cstr cstr_no_ext(Cstr path);
 
 Cstr cstr_file_name(Cstr path);
 #define FILENAME(path) cstr_file_name(path)
+Cstr cstr_folder_name(Cstr path);
+#define FOLDERNAME(path) cstr_folder_name(path)
 
 typedef struct {
     Cstr* elems;
@@ -464,6 +466,23 @@ Cstr cstr_no_ext(Cstr path) {
         char* result = malloc(n);
         memcpy(result, path, n);
         result[n - 1] = '\0';
+
+        return result;
+    } else {
+        return path;
+    }
+}
+
+Cstr cstr_folder_name(Cstr path) {
+    size_t n = strlen(path);
+    while (n > 0 && path[n - 1] != '\\' && path[n - 1] != '/') {
+        n -= 1;
+    }
+
+    if (n > 0) {
+        char* result = malloc(strlen(path)-n + 1);
+        memcpy(result, path+n, strlen(path) - n);
+        result[strlen(path) - n ] = '\0';
 
         return result;
     } else {
