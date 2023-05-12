@@ -6,4 +6,7 @@
 
 .o
 tmp/
+.vs/*
+!.vs/launch.vs.json
+!.vs/tasks.vs.json
 
