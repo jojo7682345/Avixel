@@ -5,8 +5,21 @@
 
 
 .o
+.exe
+.dll
+.so
+.a
+bin/*
+bin/
+lib/*
+lib/
+build/*.exe
+*.exe
+*.dll
+AvGraphicsUtilities/
 tmp/
-.vs/*
+.vs/
 !.vs/launch.vs.json
 !.vs/tasks.vs.json
+
 

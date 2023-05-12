@@ -3,7 +3,7 @@
   "tasks": [
     {
       "taskLabel": "bootstrap",
-      "contextType": "build",
+      "contextType": "custom",
       "appliesTo": "/build/*",
       "type": "launch",
       "workingDirectory": "${workspaceRoot}/build/",
@@ -33,7 +33,7 @@
     },
     {
       "taskLabel": "build",
-      "contextType": "custom",
+      "contextType": "build",
       "workingDirectory": "${workspaceRoot}/build/",
       "appliesTo": "*",
       "type": "launch",
@@ -59,9 +59,31 @@
       ]
     },
     {
-      "taskLabel": "task-builder",
-      "appliesTo": "build/builder.exe",
-      "type": "launch"
+      "taskLabel": "clean",
+      "contextType": "clean",
+      "workingDirectory": "${workspaceRoot}/build/",
+      "appliesTo": "*",
+      "type": "launch",
+      "commands": [
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo started clean"
+          ]
+        },
+        {
+          "command": "builder",
+          "args": [
+            "CLEAN"
+          ]
+        },
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo clean successfull"
+          ]
+        }
+      ]
     }
   ]
 }

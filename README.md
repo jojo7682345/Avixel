@@ -38,3 +38,12 @@ A GUI library in written in C using Vulkan and GLFW
     - [ ] preprocessor
     - [ ] scemantic analysis
     - [ ] operation order generation
+
+## Building
+clone the repository and run the following commands
+```bash
+cd  build
+gcc builder.c -o builder
+./builder build
+```
+the test executable should appear in AvGraphicsUtilities

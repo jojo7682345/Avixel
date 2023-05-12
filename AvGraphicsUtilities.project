@@ -1,5 +1,6 @@
 AvGraphicsUtilities {
-	type: LIB
+	type: DLL
+	export: $(OUTPUT)
 	flags: -Wall -O2
 	source: [
 		src
@@ -9,19 +10,26 @@ AvGraphicsUtilities {
 		$(CCR_SDK)\include
 		$(VULKAN_SDK)\Include
 		$(GLFW_SDK)\include
-		$(VC_IncludePath)
-		$(WindowsSDK_IncludePath)
 	]
 	libdir: [
 		lib
 		$(CCR_SDK)\lib
+		$(GLFW_SDK)\lib-mingw-w64
+		$(VULKAN_SDK)\Lib
 	]
 	lib: [
-		:MemoryUtilities.lib
+		glfw3
+		user32
+		gdi32
+		vulkan-1
 	]
 }
 AvGraphicsUtilitiesTest {
 	type: EXE 
+	export: [
+		test\assets
+		$(OUTPUT)
+	]
 	flags: -Wall -O2
 	source: [
 		test\src
@@ -35,6 +43,6 @@ AvGraphicsUtilitiesTest {
 		$(CCR_SDK)\lib
 	]
 	lib: [
-		:AvGraphicsUtilities.lib
+		AvGraphicsUtilities
 	]
 }
