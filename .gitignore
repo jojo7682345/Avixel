@@ -18,8 +18,7 @@ build/*.exe
 *.dll
 AvGraphicsUtilities/
 tmp/
-.vs/*
-!.vs/*.vs.json
+/.vs/*
 
 
 
