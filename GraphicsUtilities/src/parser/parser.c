@@ -112,6 +112,14 @@ bool isTextCharacter(char chr) {
 	return true;
 }
 
+void skipToNextLine(const char* buffer, uint64 size, uint* i) {
+	char c;
+	while ((c = buffer[(*i)++]) != '\n' && *i <= size) {
+		;;
+	};
+	(*i)--;
+}
+
 AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCount) {
 
 	const char* cPtr = buffer;
@@ -133,11 +141,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 		case '/':
 			if (buffer[i + 1] == '/') {
 				// skip to next line
-				while ((c = buffer[i++]) != '\n' && i <= size) {
-					;;
-				};
-				i--;
-				continue;
+				skipToNextLine(buffer, size, &i);
 			}
 			break;
 		case '#':
@@ -167,13 +171,23 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 					return AV_PARSE_ERROR;
 				}
 				i -= 2;
-			} else {
-				currentToken->str = buffer + i;				// Looks current token
-				currentToken->len = 1;						// Sets the length of the token
-				currentToken->type = TOKEN_TYPE_OPERATION;	// Sets the type of the token
-				currentToken = appendToken(currentToken);   // Appends the token to the list
+				break;
 			}
 
+			currentToken->str = buffer + ++i;
+			currentToken->len = 0;
+			currentToken->type = TOKEN_TYPE_OPERATION;
+			uint length = 0;
+			while (i <= size) {
+				c = buffer[i++];
+				if (!isLetter(c)) {
+					break;
+				}
+				length++;
+			}
+			currentToken->len = length;
+			currentToken = appendToken(currentToken);
+			i--;
 			break;
 		}
 		case '(':
@@ -207,11 +221,10 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			currentToken = appendToken(currentToken);
 			break;
 		case '"':
-			currentToken->str = buffer + i + 1;
+			currentToken->str = buffer + ++i;
 			currentToken->len = 0;
 			currentToken->type = TOKEN_TYPE_TEXT;
 			uint length = 0;
-			i++;
 			while (i <= size) {
 				c = buffer[i++];
 				if (c == '"') {
@@ -233,11 +246,23 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			currentToken = appendToken(currentToken);
 			break;
 		case '@':
-			currentToken->str = buffer + i;
-			currentToken->len = 1;
+		{
+			currentToken->str = buffer + ++i;
+			currentToken->len = 0;
 			currentToken->type = TOKEN_TYPE_PROTOTYPE;
+			uint length = 0;
+			while (i <= size) {
+				c = buffer[i++];
+				if (!isNameCharacter(c)) {
+					break;
+				}
+				length++;
+			}
+			currentToken->len = length;
 			currentToken = appendToken(currentToken);
+			i--;
 			break;
+		}
 		case '.':
 			currentToken->str = buffer + i;
 			currentToken->len = 1;
