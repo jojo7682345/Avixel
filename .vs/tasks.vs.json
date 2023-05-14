@@ -84,6 +84,11 @@
           ]
         }
       ]
+    },
+    {
+      "taskLabel": "task-builder",
+      "appliesTo": "build/builder.c",
+      "type": "launch"
     }
   ]
 }

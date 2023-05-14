@@ -1,7 +1,7 @@
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -Wall -O2
+	flags: -Wall -O2 -ggdb
 	source: [
 		src
 	]
@@ -13,15 +13,14 @@ AvGraphicsUtilities {
 	]
 	libdir: [
 		lib
-		$(CCR_SDK)\lib
 		$(GLFW_SDK)\lib-mingw-w64
 		$(VULKAN_SDK)\Lib
 	]
 	lib: [
 		glfw3
+		vulkan-1
 		user32
 		gdi32
-		vulkan-1
 	]
 }
 AvGraphicsUtilitiesTest {
@@ -30,7 +29,7 @@ AvGraphicsUtilitiesTest {
 		test\assets
 		$(OUTPUT)
 	]
-	flags: -Wall -O2
+	flags: -Wall -O2 -ggdb
 	source: [
 		test\src
 	]
@@ -40,7 +39,6 @@ AvGraphicsUtilitiesTest {
 	]
 	libdir: [
 		lib
-		$(CCR_SDK)\lib
 	]
 	lib: [
 		AvGraphicsUtilities

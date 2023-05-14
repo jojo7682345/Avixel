@@ -9,7 +9,7 @@ extern "C" {
 #ifdef __LOCAL_LIB__
 #include "AvGraphicsCore.h"
 #else
-#include <GraphicsUtilities/AvGraphicsCore.h>
+#include <AvGraphicsCore.h>
 #endif
 
 #ifndef PLATFORM_EMBEDDED
@@ -17,7 +17,7 @@ extern "C" {
 #ifdef __LOCAL_LIB__
 #include "AvUiParser.h"
 #else
-#include <GraphicsUtilities/AvUiParser.h>
+#include <AvUiParser.h>
 #endif
 
 #endif

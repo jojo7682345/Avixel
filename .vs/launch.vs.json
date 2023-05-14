@@ -1,12 +1,23 @@
 {
   "version": "0.2.1",
-  "defaults": {},
+  "defaults": {
+    ".dll": {
+      "exe": "AvGraphicsUtilitiesTest.exe",
+      "type": "dll"
+    }
+
+  },
   "configurations": [
     {
-      "type": "native",
-      "name": "build.exe",
-      "project": "build\\build.exe",
-      "projectTarget": ""
+      "type": "cppgdb",
+      "name": "AvGraphicsUtilitiesTest.exe",
+      "project": "AvGraphicsUtilities\\AvGraphicsUtilitiesTest.exe",
+      "projectTarget": "",
+      "cwd": "${workspaceRoot}",
+      "program": "AvGraphicsUtilitiesTest.exe",
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:\\Program Files\\mingw-w64\\x86_64-8.1.0-win32-seh-rt_v6-rev0\\mingw64\\bin\\gdb.exe",
+      "externalConsole": true
     }
   ]
 }
