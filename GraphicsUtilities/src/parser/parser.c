@@ -8,6 +8,7 @@ typedef enum TokenType {
 	TOKEN_TYPE_CLOSE, //
 	TOKEN_TYPE_ASSIGNMENT, //
 	TOKEN_TYPE_NUMBER, //
+	TOKEN_TYPE_BOOL,
 	TOKEN_TYPE_END, //
 	TOKEN_TYPE_CONST, //
 	TOKEN_TYPE_REFERENCE, //
@@ -46,6 +47,45 @@ bool isNumber(char chr) {
 	if (chr >= '0' && chr <= '9') {
 		return true;
 	}
+	return false;
+}
+
+bool isBool(const char* str, uint size) {
+	if (str[0] == 't') {
+
+		if (size != 4) {
+			return false;
+		}
+		if (str[1] != 'r') {
+			return false;
+		}
+		if (str[2] != 'u') {
+			return false;
+		}
+		if (str[3] != 'e') {
+			return false;
+		}
+		return true;
+	}
+	if (str[0] == 'f') {
+		if (size != 5) {
+			return false;
+		}
+		if (str[1] != 'a') {
+			return false;
+		}
+		if (str[2] != 'l') {
+			return false;
+		}
+		if (str[3] != 's') {
+			return false;
+		}
+		if (str[4] != 'e') {
+			return false;
+		}
+		return true;
+	}
+
 	return false;
 }
 
@@ -299,6 +339,11 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 					currentToken->len++;
 				}
 				i -= 2;
+
+				//check if token is boolean
+				if (isBool(currentToken->str, currentToken->len)) {
+					currentToken->type = TOKEN_TYPE_BOOL;
+				}
 				currentToken = appendToken(currentToken);
 			} else {
 				char errorMessage[64];
@@ -370,6 +415,9 @@ void printTokens(Token* token) {
 			break;
 		case TOKEN_TYPE_POOL_CLOSE:
 			type = "POOL_CLOSE";
+			break;
+		case TOKEN_TYPE_BOOL:
+			type = "BOOLEAN";
 			break;
 		default:
 			type = "UNKNOWN";
