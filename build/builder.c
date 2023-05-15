@@ -225,7 +225,7 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 		});
 }
 
-const char* link(const char** compiledFiles, size_t* compiledCount, Project project) {
+const char* linker(const char** compiledFiles, size_t* compiledCount, Project project) {
 
 	const char* objectFiles = "";
 	for (size_t i = 0; i < *compiledCount; i++) {
@@ -721,7 +721,7 @@ int buildProject(Project project, const char* projectName) {
 		printf("%s: %s\n", project.name, source);
 
 		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount, include, project.compiler, project.flags);
-		const char* output = link(compiledFiles, &compiledCount, project);
+		const char* output = linker(compiledFiles, &compiledCount, project);
 
 		if (!IS_DIR(projectName)) {
 			MKDIRS(projectName);
