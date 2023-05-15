@@ -42,8 +42,7 @@ A GUI library in written in C using Vulkan and GLFW
 ## Building
 clone the repository and run the following commands
 ```bash
-cd  build
-gcc builder.c -o builder
+gcc build/builder.c -o builder
 ./builder build
 ```
 the test executable should appear in AvGraphicsUtilities

@@ -6,7 +6,6 @@
 
 #define COMPILER "gcc"
 #define ARCHIVER "ar"
-#define CFLAGS "-Wall"
 #define LIB_FLAGS "rcs"
 
 #ifdef _WIN32
@@ -198,7 +197,7 @@ const char* extractEnv(const char* str, Project project) {
 	return str;
 }
 
-void compile(const char* source, const char* immediate, const char*** compiledFiles, size_t* compiledCount, const char* include, const char* compiler) {
+void compile(const char* source, const char* immediate, const char*** compiledFiles, size_t* compiledCount, const char* include, const char* compiler, const char* flags) {
 	Cstr imBuild = PATH(immediate);
 	if (!IS_DIR(imBuild)) {
 		mkdir_p(imBuild);
@@ -208,7 +207,7 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 
 		if (ENDS_WITH(file,".c") || ENDS_WITH(file,".cpp")) {
 			const char* outFile = JOIN("\\", imBuild, CONCAT(NOEXT(file), ".o"));
-			CMD(compiler, CFLAGS, include, "-c", "-o", outFile, JOIN("\\", source, file));
+			CMD(compiler, flags, include, "-c", "-o", outFile, JOIN("\\", source, file));
 			void* data = realloc(*compiledFiles, sizeof(const char*) * (*compiledCount + 1));
 			if (!data) {
 				PANIC("mem");
@@ -219,7 +218,7 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 		} else {
 			if (IS_DIR(PATH(source,file))) {
 				if (isValidDir(file)) {
-					compile(PATH(source, file), PATH(immediate, file), compiledFiles, compiledCount, include, compiler);
+					compile(PATH(source, file), PATH(immediate, file), compiledFiles, compiledCount, include, compiler,flags);
 				}
 			}
 		}
@@ -367,8 +366,10 @@ int parseFlags(char c, int* index, char* value, Project* project) {
 	if (c == '\r' || c == '\n') {
 		value[*index] = '\0';
 		memcpy(project->flags, value, 512);
+		printf("::%s\n", value);
 		return 1;
 	}
+	printf("%c\n", c);
 	value[*index] = c;
 	(*index)++;
 	return 0;
@@ -719,7 +720,7 @@ int buildProject(Project project, const char* projectName) {
 
 		printf("%s: %s\n", project.name, source);
 
-		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount, include, project.compiler);
+		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount, include, project.compiler, project.flags);
 		const char* output = link(compiledFiles, &compiledCount, project);
 
 		if (!IS_DIR(projectName)) {
@@ -817,7 +818,6 @@ void here(int line) {
 #define HERE here(__LINE__);
 
 int main(int argC, char* argV[]) {
-	chdir("../");
 	const char* program = shift_args(&argC, &argV);
 
 	OperationType op = OPERATION_TYPE_BUILD;

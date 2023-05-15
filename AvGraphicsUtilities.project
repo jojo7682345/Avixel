@@ -1,7 +1,7 @@
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -Wall -O2 -ggdb
+	flags: -Wall -g
 	source: [
 		src
 	]
@@ -29,7 +29,7 @@ AvGraphicsUtilitiesTest {
 		test\assets
 		$(OUTPUT)
 	]
-	flags: -Wall -O2 -ggdb
+	flags: -Wall -g
 	source: [
 		test\src
 	]

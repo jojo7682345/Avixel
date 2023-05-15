@@ -4,9 +4,9 @@
     {
       "taskLabel": "bootstrap",
       "contextType": "custom",
-      "appliesTo": "/build/*",
+      "appliesTo": "/build/",
       "type": "launch",
-      "workingDirectory": "${workspaceRoot}/build/",
+      "workingDirectory": "${workspaceRoot}",
       "commands": [
         {
           "command": "${env.COMSPEC}",
@@ -17,7 +17,7 @@
         {
           "command": "gcc",
           "args": [
-            "builder.c",
+            "build/builder.c",
             "-g",
             "-ggdb",
             "-o builder"
@@ -34,7 +34,7 @@
     {
       "taskLabel": "build",
       "contextType": "build",
-      "workingDirectory": "${workspaceRoot}/build/",
+      "workingDirectory": "${workspaceRoot}",
       "appliesTo": "*",
       "type": "launch",
       "commands": [
@@ -61,7 +61,7 @@
     {
       "taskLabel": "clean",
       "contextType": "clean",
-      "workingDirectory": "${workspaceRoot}/build/",
+      "workingDirectory": "${workspaceRoot}",
       "appliesTo": "*",
       "type": "launch",
       "commands": [
@@ -84,11 +84,6 @@
           ]
         }
       ]
-    },
-    {
-      "taskLabel": "task-builder",
-      "appliesTo": "build/builder.c",
-      "type": "launch"
     }
   ]
 }
