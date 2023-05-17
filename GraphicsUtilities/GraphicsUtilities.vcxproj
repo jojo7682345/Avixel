@@ -21,6 +21,8 @@
     <ClInclude Include="src\core\util\arena.h" />
     <ClInclude Include="src\core\util\util.h" />
     <ClInclude Include="src\parser\parser.h" />
+    <ClInclude Include="src\parser\syntax.h" />
+    <ClInclude Include="src\parser\tokenizer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\core\components\component.c" />
@@ -29,6 +31,8 @@
     <ClCompile Include="src\core\renderer\vulkanCore\vulkanCore.c" />
     <ClCompile Include="src\core\util\util.c" />
     <ClCompile Include="src\parser\parser.c" />
+    <ClCompile Include="src\parser\syntax.c" />
+    <ClCompile Include="src\parser\tokenizer.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="include\AvGraphicsCore.h" />

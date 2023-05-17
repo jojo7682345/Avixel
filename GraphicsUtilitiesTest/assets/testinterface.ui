@@ -3,7 +3,8 @@
 // 7-5-2023
 #once
 #include "./test.ui"
-#param SIZE = 42
+
+param SIZE = 32;
 
 Window(
 	width = 1280;
