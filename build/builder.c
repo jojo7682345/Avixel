@@ -2,6 +2,7 @@
 #include "builder.h"
 
 #include <stdio.h>
+#include <string.h>
 #include <unistd.h>
 
 #define COMPILER "gcc"
@@ -206,8 +207,8 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 	FOREACH_FILE_IN_DIR(file, source, {
 
 		if (ENDS_WITH(file,".c") || ENDS_WITH(file,".cpp")) {
-			const char* outFile = JOIN("\\", imBuild, CONCAT(NOEXT(file), ".o"));
-			CMD(compiler, flags, include, "-c", "-o", outFile, JOIN("\\", source, file));
+			const char* outFile = PATH(imBuild, CONCAT(NOEXT(file), ".o"));
+			CMD(compiler, flags, include, "-c", "-o", outFile, PATH(source, file));
 			void* data = realloc(*compiledFiles, sizeof(const char*) * (*compiledCount + 1));
 			if (!data) {
 				PANIC("mem");
@@ -781,9 +782,9 @@ void cleanWorkspace() {
 int processProject(const char* projectName, OperationType op) {
 	Project project = { 0 };
 
-	char buffer[128] = { 0 };
-	strcpy_s(buffer, 64, NOEXT(projectName));
-	strcat_s(buffer, 128, ".project");
+	char buffer[512] = { 0 };
+	strcpy(buffer, NOEXT(projectName));
+	strcat(buffer, ".project");
 	buffer[127] = '\0';
 	loadProjectFile(buffer, &project);
 	Project* p = &project;

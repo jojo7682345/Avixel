@@ -141,7 +141,7 @@ typedef struct AvProjectInfo {
 #ifdef __cplusplus
 #define AV_DEFINE_STRUCT(object,...) typedef struct object : AvStructure { __VA_ARGS__ } object; 
 #else
-#define AV_DEFINE_STRUCT(object,...) typedef struct object { AvStructure; __VA_ARGS__ } object;  
+#define AV_DEFINE_STRUCT(object,...) typedef struct object { struct AvStructure; __VA_ARGS__ } object;  
 #endif
 
 typedef struct AvLogSettings {
