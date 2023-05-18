@@ -12,10 +12,13 @@ AvGraphicsUtilities {
 	]
 	libdir: [
 		#$(GLFW_SDK)\lib-mingw-w64
+		#$(VULKAN_SDK)\Lib
 	]
 	lib: [
-		glfw
-		vulkan
+		^glfw
+		^vulkan
+		#vulkan-1
+		#glfw3
 		#user32
 		#gdi32
 	]

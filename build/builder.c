@@ -398,6 +398,14 @@ int parseExport(char c, int* index, char* value, Project* project) {
 			(*index)--;
 #endif
 		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
+#endif
+		}
 		value[*index] = '\0';
 		char** data = realloc(project->exports, sizeof(char*) * (project->exportCount + 1));
 		if (!data) {
@@ -411,8 +419,16 @@ int parseExport(char c, int* index, char* value, Project* project) {
 		project->exportCount++;
 		return 1;
 	}
-	value[*index] = c;
-	(*index)++;
+
+	if (c == '/' || c == '\\') {
+		for (int i = 0; i < strlen(PATH_SEP); i++) {
+			value[*index] = PATH_SEP[i];
+			(*index)++;
+		}
+	} else {
+		value[*index] = c;
+		(*index)++;
+	}
 	return 0;
 }
 
@@ -437,6 +453,14 @@ int parseSource(char c, int* index, char* value, Project* project) {
 			(*index)--;
 #endif
 		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
+#endif
+		}
 		value[*index] = '\0';
 		char** data = realloc(project->sources, sizeof(char*) * (project->sourceCount + 1));
 		if (!data) {
@@ -450,8 +474,16 @@ int parseSource(char c, int* index, char* value, Project* project) {
 		project->sourceCount++;
 		return 1;
 	}
-	value[*index] = c;
-	(*index)++;
+
+	if (c == '/' || c == '\\') {
+		for (int i = 0; i < strlen(PATH_SEP); i++) {
+			value[*index] = PATH_SEP[i];
+			(*index)++;
+		}
+	} else {
+		value[*index] = c;
+		(*index)++;
+	}
 	return 0;
 }
 
@@ -463,6 +495,14 @@ int parseLib(char c, int* index, char* value, Project* project) {
 #else
 			value++;
 			(*index)--;
+#endif
+		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
 #endif
 		}
 		value[*index] = '\0';
@@ -478,31 +518,16 @@ int parseLib(char c, int* index, char* value, Project* project) {
 		project->s_libCount++;
 		return 1;
 	}
+
 	value[*index] = c;
 	(*index)++;
+	
 	return 0;
 }
 
 int parseDll(char c, int* index, char* value, Project* project) {
-	if (c == '\r' || c == '\n' || c == ' ') {
-		value[*index] = '\0';
-		char** data = realloc(project->d_libs, sizeof(char*) * (project->d_libCount + 1));
-		if (!data) {
-			PANIC("out of mem");
-		}
-		project->d_libs = data;
-
-		char* str = malloc(*index + 1);
-		memcpy(str, value, *index + 1);
-		project->d_libs[project->d_libCount] = str;
-		project->d_libCount++;
-
-		WARN("specifing dll is deprecated, add it to the lib");
-		return 1;
-	}
-	value[*index] = c;
-	(*index)++;
-	return 0;
+	PANIC("DEPRECATED");
+	return 1;
 }
 
 int parseInclude(char c, int* index, char* value, Project* project) {
@@ -513,6 +538,14 @@ int parseInclude(char c, int* index, char* value, Project* project) {
 #else
 			value++;
 			(*index)--;
+#endif
+		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
 #endif
 		}
 		value[*index] = '\0';
@@ -528,8 +561,16 @@ int parseInclude(char c, int* index, char* value, Project* project) {
 		project->includeCount++;
 		return 1;
 	}
-	value[*index] = c;
-	(*index)++;
+
+	if (c == '/' || c == '\\') {
+		for (int i = 0; i < strlen(PATH_SEP); i++) {
+			value[*index] = PATH_SEP[i];
+			(*index)++;
+		}
+	} else {
+		value[*index] = c;
+		(*index)++;
+	}
 	return 0;
 }
 
@@ -541,6 +582,14 @@ int parseLibDir(char c, int* index, char* value, Project* project) {
 #else
 			value++;
 			(*index)--;
+#endif
+		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
 #endif
 		}
 		value[*index] = '\0';
@@ -556,8 +605,16 @@ int parseLibDir(char c, int* index, char* value, Project* project) {
 		project->libdirCount++;
 		return 1;
 	}
-	value[*index] = c;
-	(*index)++;
+
+	if (c == '/' || c == '\\') {
+		for (int i = 0; i < strlen(PATH_SEP); i++) {
+			value[*index] = PATH_SEP[i];
+			(*index)++;
+		}
+	} else {
+		value[*index] = c;
+		(*index)++;
+	}
 	return 0;
 }
 
