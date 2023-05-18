@@ -33,7 +33,7 @@
     },
     {
       "taskLabel": "build",
-      "contextType": "build",
+      "contextType": "custom",
       "workingDirectory": "${workspaceRoot}",
       "appliesTo": "*",
       "type": "launch",

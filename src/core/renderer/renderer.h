@@ -11,22 +11,21 @@ typedef enum DisplayType {
 	DISPLAY_TYPE_EMBEDDED
 } DisplayType;
 
-typedef struct WindowSizeProperties {
-	uint width;
-	uint height;
-	uint x;
-	uint y;
-}WindowSizeProperties;
-
-typedef struct WindowProperties {
-	WindowSizeProperties;
+typedef struct WindowSizeProperties{
+    uint width;
+    uint height;
+    uint x;
+    uint y;
+} WindowSizeProperties;
+typedef struct WindowProperties{
+    WindowSizeProperties size;
 	const char* title;
 	bool resizable;
 	bool fullSurface;
 } WindowProperties;
 
 typedef struct WindowCreateInfo {
-	WindowProperties;
+	WindowProperties properties;
 	void (*onWindowResize)(void*, int, int);
 	void (*onWindowDisconnect)(void*);
 } WindowCreateInfo;

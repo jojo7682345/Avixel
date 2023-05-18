@@ -2,6 +2,11 @@
     "files.associations": {
         "core.h": "c",
         "graphicsutilities.h": "c",
-        "util.h": "c"
+        "util.h": "c",
+        "glfw3.h": "c",
+        "vulkan.h": "c",
+        "parser.h": "c",
+        "avuiparser.h": "c",
+        "avgraphicscore.h": "c"
     }
 }

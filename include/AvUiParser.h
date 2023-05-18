@@ -1,4 +1,3 @@
-
 typedef struct AvInterfaceLoadFileInfo {
 	int a;
 } AvInterfaceLoadFileInfo;
