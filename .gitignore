@@ -12,6 +12,7 @@ lib/*
 lib/
 tmp/
 build/*.exe
+builder*
 .vs/*
 
 #project tasks and launch configurations for visual studio

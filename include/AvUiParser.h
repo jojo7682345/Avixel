@@ -1,5 +1,3 @@
-#include <GraphicsUtilities/GraphicsUtilities.h>
-
 typedef struct AvInterfaceLoadFileInfo {
 	int a;
 } AvInterfaceLoadFileInfo;

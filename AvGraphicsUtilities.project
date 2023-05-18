@@ -1,41 +1,37 @@
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -Wall -g
+	flags: -std=c11 -ggdb -fPIC
 	source: [
 		src
 	]
 	include: [
 		include
-		$(CCR_SDK)\include
-		$(VULKAN_SDK)\Include
-		$(GLFW_SDK)\include
+		#$(VULKAN_SDK)\Include
+		#$(GLFW_SDK)\include
 	]
 	libdir: [
-		lib
-		$(GLFW_SDK)\lib-mingw-w64
-		$(VULKAN_SDK)\Lib
+		#$(GLFW_SDK)\lib-mingw-w64
 	]
 	lib: [
-		glfw3
-		vulkan-1
-		user32
-		gdi32
+		glfw
+		vulkan
+		#user32
+		#gdi32
 	]
 }
 AvGraphicsUtilitiesTest {
 	type: EXE 
 	export: [
-		test\assets
+		test/assets
 		$(OUTPUT)
 	]
-	flags: -Wall -g
+	flags: -Wall -ggdb
 	source: [
-		test\src
+		test/src
 	]
 	include: [
 		include
-		$(CCR_SDK)\include
 	]
 	libdir: [
 		lib

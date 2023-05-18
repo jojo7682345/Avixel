@@ -50,7 +50,7 @@ typedef HANDLE Fd;
 //
 // ============================================================
 //
-// minirent — 0.0.1 — A subset of dirent interface for Windows.
+// minirent ï¿½ 0.0.1 ï¿½ A subset of dirent interface for Windows.
 //
 // https://github.com/tsoding/minirent
 //
@@ -161,6 +161,15 @@ typedef struct {
         cmd_run_sync(cmd);                              \
     } while (0)
 
+#define CMD_ARR(arr)                                    \
+    do {                                                \
+        Cmd cmd = {                                     \
+            .line = arr                                 \
+        };                                              \
+        INFO("CMD: %s", cmd_show(cmd));                 \
+        cmd_run_sync(cmd);                              \
+    } while (0)
+
 typedef enum {
     CHAIN_TOKEN_END = 0,
     CHAIN_TOKEN_IN,
@@ -225,7 +234,7 @@ void chain_echo(Chain chain);
 #  endif
 #endif
 
-// Go Rebuild Urself™ Technology
+// Go Rebuild Urselfï¿½ Technology
 //
 //   How to use it:
 //     int main(int argc, char** argv) {
@@ -447,6 +456,13 @@ Cstr_Array cstr_array_append(Cstr_Array cstrs, Cstr cstr) {
     memcpy(result.elems, cstrs.elems, cstrs.count * sizeof(result.elems[0]));
     result.elems[cstrs.count] = cstr;
     return result;
+}
+
+Cstr_Array cstr_array_concat(Cstr_Array cstrs, Cstr_Array c){
+    for(int i = 0; i < c.count; i++){
+        cstrs = cstr_array_append(cstrs, c.elems[i]);
+    }
+    return cstrs;
 }
 
 int cstr_ends_with(Cstr cstr, Cstr postfix) {
@@ -793,7 +809,6 @@ Pid cmd_run_async(Cmd cmd, Fd* fdin, Fd* fdout) {
                 PANIC("Could not setup stdout for child process: %s", strerror(errno));
             }
         }
-
         if (execvp(args.elems[0], (char* const*)args.elems) < 0) {
             PANIC("Could not exec child process: %s: %s",
                   cmd_show(cmd), strerror(errno));

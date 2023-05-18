@@ -30,7 +30,7 @@ int main(int argC, const char** argV) {
 	logSettings.printFunc = false;
 	logSettings.printError = true;
 	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
-	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
+	logSettings.assertLevel = AV_ASSERT_LEVEL_ERROR;
 
 	AvWindowCreateInfo windowInfo = {};
 	windowInfo.sType = AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO;

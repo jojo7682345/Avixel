@@ -1,5 +1,5 @@
 #include "../renderer.h"
-#include <vulkan/vulkan.h>
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <string.h>
 
@@ -114,7 +114,7 @@ AvResult displaySurfaceInit(AvInstance instance) {
 	instance->displaySurface->type = DISPLAY_TYPE_MONITOR;
 
 	char monitorSize[32];
-	sprintf_s(monitorSize, 31, "display surface size %ix%i", mode->width, mode->height);
+	sprintf(monitorSize, "display surface size %ix%i", mode->width, mode->height);
 	avLog(AV_INFO, monitorSize);
 
 	avAssert(0, AV_SUCCESS, "initialized display surface");
@@ -148,11 +148,11 @@ const char** displaySurfaceEnumerateExtensions(AvInstance instance, uint* count)
 
 AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo windowCreateInfo, WindowProperties* windowProperties, Window* window) {
 
-	if (windowCreateInfo.width > instance->displaySurface->width) {
-		windowCreateInfo.width = instance->displaySurface->width;
+	if (windowCreateInfo.properties.size.width > instance->displaySurface->width) {
+		windowCreateInfo.properties.size.width = instance->displaySurface->width;
 	}
-	if (windowCreateInfo.height > instance->displaySurface->height) {
-		windowCreateInfo.height = instance->displaySurface->height;
+	if (windowCreateInfo.properties.size.height > instance->displaySurface->height) {
+		windowCreateInfo.properties.size.height = instance->displaySurface->height;
 	}
 
 	*window = avAllocate(sizeof(Window_T), 1, "allocating window handle");
@@ -160,23 +160,26 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 	(*window)->displaySurface = instance->displaySurface;
 
 
-	GLFWmonitor* fullscreen = windowCreateInfo.fullSurface ? glfwGetPrimaryMonitor() : NULL;
+	GLFWmonitor* fullscreen = windowCreateInfo.properties.fullSurface ? glfwGetPrimaryMonitor() : NULL;
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-	glfwWindowHint(GLFW_RESIZABLE, windowCreateInfo.resizable ? GLFW_TRUE : GLFW_FALSE);
-	(*window)->window = glfwCreateWindow(windowCreateInfo.width, windowCreateInfo.height, windowCreateInfo.title, fullscreen, NULL);
+	glfwWindowHint(GLFW_RESIZABLE, windowCreateInfo.properties.resizable ? GLFW_TRUE : GLFW_FALSE);
+	(*window)->window = glfwCreateWindow(windowCreateInfo.properties.size.width, windowCreateInfo.properties.size.height, windowCreateInfo.properties.title, fullscreen, NULL);
+	if((*window)->window==NULL){
+		avAssert(AV_CREATION_ERROR,0, "Failed to create the window");
+	}
 	avAssert(0, 0, "created window");
 
-	if (windowCreateInfo.x != -1 && windowCreateInfo.y != -1) {
-		glfwSetWindowPos((*window)->window, windowCreateInfo.x, windowCreateInfo.y);
-	} else if ((windowCreateInfo.x == -1 && windowCreateInfo.y != -1) || (windowCreateInfo.x != -1 && windowCreateInfo.y == -1)) {
+	if (windowCreateInfo.properties.size.x != -1 && windowCreateInfo.properties.size.y != -1) {
+		glfwSetWindowPos((*window)->window, windowCreateInfo.properties.size.x, windowCreateInfo.properties.size.y);
+	} else if ((windowCreateInfo.properties.size.x == -1 && windowCreateInfo.properties.size.y != -1) || (windowCreateInfo.properties.size.x != -1 && windowCreateInfo.properties.size.y == -1)) {
 		avAssert(AV_UNUSUAL_ARGUMENTS, AV_SUCCESS, "single axis specified, should be both or none");
 	}
 
 	glfwShowWindow((*window)->window);
 
 	glfwSetWindowCloseCallback((*window)->window, windowCreateInfo.onWindowDisconnect);
-	if (windowCreateInfo.resizable) {
+	if (windowCreateInfo.properties.resizable) {
 		if (!windowCreateInfo.onWindowResize) {
 			avAssert(AV_UNSPECIFIED_CALLBACK, AV_SUCCESS, "window is resizable, but no resize callback is specified");
 		} else {
@@ -189,13 +192,13 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 	glfwGetWindowPos((*window)->window, &x, &y);
 
 	if (windowProperties) {
-		windowProperties->fullSurface = windowCreateInfo.fullSurface;
-		windowProperties->resizable = windowCreateInfo.resizable;
-		windowProperties->title = windowCreateInfo.title;
-		windowProperties->x = x;
-		windowProperties->y = y;
-		windowProperties->width = width;
-		windowProperties->height = height;
+		windowProperties->fullSurface = windowCreateInfo.properties.fullSurface;
+		windowProperties->resizable = windowCreateInfo.properties.resizable;
+		windowProperties->title = windowCreateInfo.properties.title;
+		windowProperties->size.x = x;
+		windowProperties->size.y = y;
+		windowProperties->size.width = width;
+		windowProperties->size.height = height;
 	}
 
 	VkResult result = glfwCreateWindowSurface(instance->renderInstance->instance, (*window)->window, NULL, &((*window)->surface));
@@ -270,9 +273,6 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	}
 
 	ValidationMessageType type = { 0 };
-	if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_DEVICE_ADDRESS_BINDING_BIT_EXT) {
-		type = VALIDATION_MESSAGE_TYPE_DEVICE_ADDRESS;
-	}
 	if (messageType & VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT) {
 		type = VALIDATION_MESSAGE_TYPE_GENERAL;
 	}
@@ -307,7 +307,7 @@ void renderInstanceCreate(AvInstance instance, RenderInstanceCreateInfo info) {
 	VkApplicationInfo appInfo = { 0 };
 	appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
 	appInfo.apiVersion = VK_API_VERSION_1_0;
-	appInfo.engineVersion = VK_MAKE_API_VERSION(0, 1, 0, 0);
+	appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 	appInfo.pEngineName = "AlpineValleyUIengine";
 	appInfo.pApplicationName = info.projectInfo.pProjectName;
 	appInfo.applicationVersion = info.projectInfo.projectVersion;
@@ -614,7 +614,7 @@ void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevic
 
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("found device ") / sizeof(char))] = { 0 };
-		sprintf_s(msg, sizeof(msg), "found device %s", deviceName);
+		sprintf(msg, sizeof(msg), "found device %s", deviceName);
 		avLog(AV_INFO, msg);
 
 		uint score = scoreDevice(device, window);
@@ -633,7 +633,7 @@ void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevic
 		vkGetPhysicalDeviceProperties((*pDevice)->physicalDevice, &deviceProperties);
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("selected device ") / sizeof(char))] = { 0 };
-		sprintf_s(msg, sizeof(msg), "selected device  %s", deviceName);
+		sprintf(msg, sizeof(msg), "selected device  %s", deviceName);
 		avLog(AV_INFO, msg);
 	}
 	avAssert(0, 0, "found physical device");

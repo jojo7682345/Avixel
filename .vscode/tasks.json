@@ -4,11 +4,18 @@
 		{
 			"label": "build",
 			"type":"shell",
-			"command":[
-				"cd build",
-				"./builder"
-			],
+			"command":"./builder",
 			"args": ["build"]
+		},
+		{
+			"label": "bootstrap",
+			"type":"shell",
+			"command":"gcc",
+			"args": [
+				"-o builder",
+				"build/builder.c",
+				"-g"
+			]
 		}
 	]
 }

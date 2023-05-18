@@ -1,15 +1,14 @@
 {
     "configurations": [
         {
-            "name": "Win32",
+            "name": "UBUNTU",
             "forcedInclude": [
                 
             ],
             "includePath": [
                 "${env:VULKAN_SDK}/Include",
                 "${env:GLFW_SDK}/include",
-                "${workspaceFolder}/include",
-                "${env:CCR_SDK}/include"
+                "${workspaceFolder}/include"
                 
             ],
             "defines": [
@@ -18,7 +17,7 @@
                 "_UNICODE"
             ],
             "cStandard": "c17",
-            "intelliSenseMode": "windows-msvc-x64"
+            "intelliSenseMode": "gcc-x64"
         }
     ],
     "version": 4
