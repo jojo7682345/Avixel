@@ -830,11 +830,6 @@ int copyFile(const char* source, const char* destination) {
 		return 0;
 	}
 
-	struct stat statRes;
-	if(stat(source,&statRes)<0){
-		PANIC("Failed to get the privileges of the source file");
-	}
-
 	fseek(fs, 0, SEEK_END);
 	size_t size = ftell(fs);
 	fseek(fs, 0, SEEK_SET);
@@ -854,7 +849,14 @@ int copyFile(const char* source, const char* destination) {
 	fclose(fs);
 	fclose(ft);
 
-	chmod(destination,statRes.st_mode);
+#ifndef _WIN32
+	struct stat statRes;
+	if (stat(source, &statRes) < 0) {
+		PANIC("Failed to get the privileges of the source file");
+	}
+	chmod(destination, statRes.st_mode);
+#endif
+	
 
 	return 0;
 }
