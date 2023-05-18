@@ -614,7 +614,7 @@ void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevic
 
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("found device ") / sizeof(char))] = { 0 };
-		sprintf(msg, sizeof(msg), "found device %s", deviceName);
+		sprintf(msg, "found device %s", deviceName);
 		avLog(AV_INFO, msg);
 
 		uint score = scoreDevice(device, window);
@@ -633,7 +633,7 @@ void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevic
 		vkGetPhysicalDeviceProperties((*pDevice)->physicalDevice, &deviceProperties);
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("selected device ") / sizeof(char))] = { 0 };
-		sprintf(msg, sizeof(msg), "selected device  %s", deviceName);
+		sprintf(msg, "selected device  %s", deviceName);
 		avLog(AV_INFO, msg);
 	}
 	avAssert(0, 0, "found physical device");

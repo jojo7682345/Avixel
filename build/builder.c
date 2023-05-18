@@ -37,6 +37,7 @@ typedef enum OperationType {
 	OPERATION_TYPE_CLEAN,
 	OPERATION_TYPE_REBUILD,
 	OPERATION_TYPE_CONFIGURE,
+	OPERATION_TYPE_INSTALL,
 	OPERATION_TYPE_UNKNOWN,
 }OperationType;
 
@@ -89,6 +90,9 @@ OperationType getOperationType(const char* type) {
 	}
 	if (strcmp(str, "CONFIGURE") == 0) {
 		return OPERATION_TYPE_CONFIGURE;
+	}
+	if(strcmp(str,"INSTALL")==0){
+		return OPERATION_TYPE_INSTALL;	
 	}
 	return OPERATION_TYPE_UNKNOWN;
 }
@@ -156,6 +160,9 @@ const char* getCustomEnv(const char* env, Project project) {
 		case PROJECT_TYPE_EXE:
 			output = PATH("bin", CONCAT(project.name, EXE_EXTENSION));
 			break;
+		case PROJECT_TYPE_UNKNOWN:
+			PANIC("invalid project type");
+			return NULL;
 		}
 		return output;
 	}
@@ -341,8 +348,11 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 		CMD_ARR(args);
 		return output;
 	}
+		default:
+			break;
 	}
 	PANIC("should not reach here, invalid project type");
+	return NULL;
 }
 
 
@@ -724,6 +734,8 @@ int parseProjectFile(char* buffer, Project* project) {
 	if (oldProject) {
 		oldProject->next = 0;
 	}
+
+	return 0;
 }
 
 int loadProjectFile(const char* file, Project* project) {
@@ -761,6 +773,11 @@ int copyFile(const char* source, const char* destination) {
 		return 0;
 	}
 
+	struct stat statRes;
+	if(stat(source,&statRes)<0){
+		PANIC("Failed to get the privileges of the source file");
+	}
+
 	fseek(fs, 0, SEEK_END);
 	size_t size = ftell(fs);
 	fseek(fs, 0, SEEK_SET);
@@ -779,7 +796,53 @@ int copyFile(const char* source, const char* destination) {
 	printf("File copied successfully.\n");
 	fclose(fs);
 	fclose(ft);
+
+	chmod(destination,statRes.st_mode);
+
 	return 0;
+}
+
+#ifndef _WIN32
+#define _POSIX_SOURCE
+#include <sys/stat.h>
+#endif
+
+int userIsRoot(){
+#ifndef _WIN32
+
+	return getuid()==0;
+
+#endif
+	return 0;
+}
+
+void installProject(Project project, const char* projectName){
+#ifdef _WIN32
+	
+	INFO("Instaling is not required on windows");
+	return;
+
+#endif
+	if(!userIsRoot()){
+		WARN("You must run install with root privileges");
+		return;
+	}
+
+	if(project.type!=PROJECT_TYPE_DLL && project.type!=PROJECT_TYPE_LIB){
+		return;
+	}
+
+	const char* projectFile = CONCAT(LIB_PREFIX,project.name,project.type==PROJECT_TYPE_DLL?DLL_EXTENSION:LIB_EXTENSION); 
+	const char* outDir = CONCAT(PATH_SEP,PATH("usr","lib"));
+	copyFile(
+		PATH("lib",projectFile), 
+		PATH(outDir,projectFile)
+	);
+	char mode[] = "0755";
+	int modeNum = strtol(mode,0,8);
+	if(chmod(PATH(outDir,projectFile),modeNum)<0){
+		PANIC("failed to give the library the propper permissions");
+	}
 }
 
 int buildProject(Project project, const char* projectName) {
@@ -808,7 +871,7 @@ int buildProject(Project project, const char* projectName) {
 			project.libdir[i] = CONCAT("-L",extractEnv(project.libdir[i],project));
 		}
 
-		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount,project.includeCount, project.include, project.compiler, project.flags);
+		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags);
 		const char* output = linker(compiledFiles, compiledCount, project);
 
 		if (!IS_DIR(projectName)) {
@@ -838,7 +901,12 @@ void cleanProject(Project project, const char* projectName) {
 		RM(PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
 		break;
 	case PROJECT_TYPE_LIB:
-		RM(PATH("lib", CONCAT(project.name, LIB_EXTENSION)));
+		RM(PATH("lib", CONCAT(LIB_PREFIX,project.name, LIB_EXTENSION)));
+		break;
+	case PROJECT_TYPE_DLL:
+		RM(PATH("lib", CONCAT(LIB_PREFIX,project.name,DLL_EXTENSION)));
+		break;
+		default:
 		break;
 	}
 }
@@ -894,6 +962,9 @@ int processProject(const char* projectName, OperationType op) {
 		case OPERATION_TYPE_CONFIGURE:
 			// TODO: implement
 			break;
+		case OPERATION_TYPE_INSTALL:
+			installProject(*p, NOEXT(projectName));
+			break;
 		}
 		p = p->next;
 	}
@@ -927,7 +998,7 @@ int main(int argC, char* argV[]) {
 		}
 		FOREACH_FILE_IN_DIR(project, "./", {
 			if (ENDS_WITH(project, PROJECT_FILE)) {
-				printf("building project %s\n", project);
+				printf("processing project %s\n", project);
 				if (processProject(project, op) != 0) {
 					return -1;
 				}
