@@ -18,7 +18,7 @@
     <ClInclude Include="src\core\logging\logging.h" />
     <ClInclude Include="src\core\positioner\positioner.h" />
     <ClInclude Include="src\core\renderer\renderer.h" />
-    <ClInclude Include="src\core\util\arena.h" />
+    <ClInclude Include="src\core\util\dynamicArray.h" />
     <ClInclude Include="src\core\util\util.h" />
     <ClInclude Include="src\parser\parser.h" />
     <ClInclude Include="src\parser\syntax.h" />
@@ -29,6 +29,7 @@
     <ClCompile Include="src\core\core.c" />
     <ClCompile Include="src\core\logging\logging.c" />
     <ClCompile Include="src\core\renderer\vulkanCore\vulkanCore.c" />
+    <ClCompile Include="src\core\util\dynamicArray.c" />
     <ClCompile Include="src\core\util\util.c" />
     <ClCompile Include="src\parser\parser.c" />
     <ClCompile Include="src\parser\syntax.c" />
@@ -70,12 +71,12 @@
     <TargetName>$(ProjectName)Debug</TargetName>
     <OutDir>C:\SDK\CCR\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;C:\SDK\CCR\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>C:\SDK\CCR\lib\</OutDir>
     <IntDir>x64\$(Configuration)\</IntDir>
-    <IncludePath>C:\SDK\CCR\include;C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\SDK\glfw-3.3.8.bin.WIN64\include;C:\SDK\VulkanSDK\1.3.243.0\Include;$(ProjectDir)include;C:\SDK\CCR\include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Lib>

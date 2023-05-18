@@ -1,53 +1,65 @@
 #pragma once
 #include "tokenizer.h"
+#include "../core/util/dynamicArray.h"
 
 typedef enum NodeType {
-
+	NODE_TYPE_ONCE,
+	NODE_TYPE_INCLUDE,
+	NODE_TYPE_PARAM,
+	NODE_TYPE_PROTOTYPE,
+	NODE_TYPE_COMPONENT,
+	NODE_TYPE_PROPERTY,
+	NODE_TYPE_VALUE,
 }NodeType;
 
-typedef struct SyntaxTreeNode {
-	NodeType* type;
-}SyntaxTreeNode;
-
 typedef struct OnceNode {
-	SyntaxTreeNode node;
+	byte padding_;
 } OnceNode;
 
 typedef struct IncludeNode {
-	SyntaxTreeNode node;
 	const char* file;
 } IncludeNode;
 
 typedef struct ParamNode {
-	SyntaxTreeNode node;
 	const char* name;
 	Token* value; //
 } ParamNode;
 
 typedef struct PrototypeNode {
-	SyntaxTreeNode node;
 	const char* name;
 	const char* type;
-	uint childCount;
-	SyntaxTreeNode* children;
+	DynamicArray children;
 } PrototypeNode;
 
 typedef struct ComponentNode {
-	SyntaxTreeNode node;
 	const char* name;
 	const char type;
-	uint childCount;
-	SyntaxTreeNode* children;
+	DynamicArray children;
 } ComponentNode;
 
 typedef struct PropertyNode {
-	SyntaxTreeNode node;
 	const char* name;
 	bool isConst;
 	SyntaxTreeNode* value;
 } PropertyNode;
 
 typedef struct ValueNode {
-	SyntaxTreeNode node;
 	Token* value;
 } ValueNode;
+
+typedef struct SyntaxTreeNode {
+	NodeType type;
+
+	union {
+		OnceNode once;
+		IncludeNode include;
+		ParamNode param;
+		PrototypeNode prototype;
+		ComponentNode component;
+		PropertyNode property;
+		ValueNode value;
+	};
+
+}SyntaxTreeNode;
+
+AvResult buildSyntaxTree(uint tokenCount, Token* tokens, DynamicArray rootNodes);

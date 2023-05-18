@@ -16,6 +16,15 @@ void* avAllocate_(uint typeSize, uint count, AV_LOCATION_ARGS, const char* error
 	return data;
 }
 
+void* avReallocate_(void* data, uint typeSize, uint count, AV_LOCATION_ARGS, const char* errorMsg) {
+	void* data = reallocateHeapDebug(data, ((size_t)typeSize * (size_t)count), line, file);
+	if (data == 0) {
+		avAssert_(AV_MEMORY_ERROR, AV_SUCCESS, line, file, func, fstream, errorMsg);
+		return nullptr;
+	}
+	return data;
+}
+
 void avFree_(void* data,AV_LOCATION_ARGS) {
 	freeHeapDebug(data,line,file);
 }

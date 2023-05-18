@@ -1,13 +1,21 @@
 #include "parser.h"
 #include "tokenizer.h"
+#include "syntax.h"
 
 AvResult parseFile(const char* buffer, uint64 size) {
 	Token* tokens;
 	uint tokenCount;
+	DynamicArray syntaxTree;
+	dynamicArrayCreate(sizeof(SyntaxTreeNode), &syntaxTree);
+
+
 	avAssert(tokenize(buffer, size, &tokens, &tokenCount), AV_SUCCESS, "tokenizing");
-	printTokens(tokens, tokenCount);
-	// TODO: parse syntax
+	avAssert(buildSyntaxTree(tokenCount, tokens, &syntaxTree), AV_SUCCESS, "generating syntax tree");
+
 	// TODO: preprocessor
+
+
+	dynamicArrayDestroy(syntaxTree);
 	avFree(tokens);
 
 	return AV_SUCCESS;

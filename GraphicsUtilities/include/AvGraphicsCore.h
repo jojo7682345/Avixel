@@ -72,6 +72,7 @@ typedef enum AvResult {
 	AV_ALREADY_INITIALIZED = AV_ERROR | 11,
 	AV_ALREADY_EXISTS = AV_ERROR | 12,
 	AV_PARSE_ERROR = AV_ERROR | 13,
+	AV_INVALID_SIZE = AV_ERROR | 14,
 } AvResult;
 
 typedef enum AvLogLevel {
@@ -113,6 +114,8 @@ void avAssert_(AvResult result, AvResult valid, AV_LOCATION_ARGS, const char* ms
 
 void* avAllocate_(uint size, uint count, AV_LOCATION_ARGS, const char* msg);
 #define avAllocate(size,count,message) avAllocate_(size,count,AV_LOCATION_PARAMS, message)
+void* avReallocate_(void* data, uint size, uint count, AV_LOCATION_ARGS, const char* msg);
+#define avReallocate(data,size,count,message) avReallocate_(data,size,count,AV_LOCATION_PARAMS,message)
 void avFree_(void* data, AV_LOCATION_ARGS);
 #define avFree(data) avFree_(data, AV_LOCATION_PARAMS)
 
