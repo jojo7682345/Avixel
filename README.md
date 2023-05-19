@@ -44,5 +44,6 @@ clone the repository and run the following commands
 ```bash
 gcc build/builder.c -o builder
 ./builder build
+sudo ./builder install
 ```
 the test executable should appear in AvGraphicsUtilities
