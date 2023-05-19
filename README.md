@@ -4,11 +4,12 @@ A GUI library in written in C using Vulkan and GLFW
 ## Goals for the project
  - Use the GUI library to make a Visual Editor for UI design
  - Making a simple IDE
- - Migrate project from Visual Studio
+ - Migrate project from Visual Studio ( done )
  - Linux and rpi support
  - Add embedded system support (replace vulkan renderer with cpu renderer based on platform)
 
 ## Tasks
+- [x] Build system migration
 - [ ] Renderer
     - [ ] Render rectangles
         - [ ] Basic Transform buffer input
@@ -41,9 +42,15 @@ A GUI library in written in C using Vulkan and GLFW
 
 ## Building
 clone the repository and run the following commands
+### Windows
 ```bash
+gcc build/builder.c -o builder
+./builder build
+```
+### linux
+```
 gcc build/builder.c -o builder
 ./builder build
 sudo ./builder install
 ```
-the test executable should appear in AvGraphicsUtilities
+the test executable should appear in the AvGraphicsUtilities folder
