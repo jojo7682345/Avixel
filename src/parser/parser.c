@@ -1,5 +1,7 @@
 #include "parser.h"
 
+#include <stdio.h>
+
 typedef enum TokenType {
 	TOKEN_TYPE_END_OF_FILE,
 	TOKEN_TYPE_OPERATION, //
@@ -41,16 +43,21 @@ void freeTokens(Token* token) {
 	}
 	avFree(token);
 }
-
-bool isNumber(char chr) {
-	if (chr >= '0' && chr <= '9') {
+bool isLowercaseLetter(char chr) {
+	if (chr >= 'a' && chr <= 'z') {
+		return true;
+	}
+	return false;
+}
+bool isDecNumber(char numChar) {
+	if (numChar >= '0' && numChar <= '9') {
 		return true;
 	}
 	return false;
 }
 
 bool isHexNumber(char chr) {
-	if (isNumber(chr)) {
+	if (isDecNumber(chr)) {
 		return true;
 	}
 	if (chr >= 'a' && chr <= 'f') {
@@ -62,14 +69,9 @@ bool isHexNumber(char chr) {
 	return false;
 }
 
-bool isLowerCaseLetter(char chr) {
-	if (chr >= 'a' && chr <= 'z') {
-		return true;
-	}
-	return false;
-}
 
-bool isUpperCaseLetter(char chr) {
+
+bool isUppercaseLetter(char chr) {
 	if (chr >= 'A' && chr <= 'Z') {
 		return true;
 	}
@@ -77,26 +79,26 @@ bool isUpperCaseLetter(char chr) {
 }
 
 bool isLetter(char chr) {
-	if (isUpperCaseLetter(chr)) {
+	if (isUppercaseLetter(chr)) {
 		return true;
 	}
-	if (isLowerCaseLetter(chr)) {
+	if (isLowercaseLetter(chr)) {
 		return true;
 	}
 	return false;
 }
 
 bool isNameCharacter(char chr) {
-	if (isUpperCaseLetter(chr)) {
+	if (isUppercaseLetter(chr)) {
 		return true;
 	}
-	if (isLowerCaseLetter(chr)) {
+	if (isLowercaseLetter(chr)) {
 		return true;
 	}
 	if (chr == '_') {
 		return true;
 	}
-	if (isNumber(chr)) {
+	if (isDecNumber(chr)) {
 		return true;
 	}
 	return false;
@@ -257,11 +259,11 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			currentToken = appendToken(currentToken);
 			break;
 		default:
-			if (isNumber(c)) {
+			if (isDecNumber(c)) {
 				currentToken->str = buffer + i;
 				currentToken->len = 0;
 				currentToken->type = TOKEN_TYPE_NUMBER;
-				while (isNumber(buffer[i++]) && i <= size) {
+				while (isDecNumber(buffer[i++]) && i <= size) {
 					currentToken->len++;
 				}
 				i -= 2;

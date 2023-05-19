@@ -35,13 +35,13 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 
 	// create window
 	WindowCreateInfo windowInfo = { 0 };
-	windowInfo.x = createInfo.windowInfo.x;
-	windowInfo.y = createInfo.windowInfo.y;
-	windowInfo.width = createInfo.windowInfo.width;
-	windowInfo.height = createInfo.windowInfo.height;
-	windowInfo.resizable = createInfo.windowInfo.resizable;
-	windowInfo.fullSurface = createInfo.windowInfo.fullscreen;
-	windowInfo.title = createInfo.windowInfo.title;
+	windowInfo.properties.size.x = createInfo.windowInfo.x;
+	windowInfo.properties.size.y = createInfo.windowInfo.y;
+	windowInfo.properties.size.width = createInfo.windowInfo.width;
+	windowInfo.properties.size.height = createInfo.windowInfo.height;
+	windowInfo.properties.resizable = createInfo.windowInfo.resizable;
+	windowInfo.properties.fullSurface = createInfo.windowInfo.fullscreen;
+	windowInfo.properties.title = createInfo.windowInfo.title;
 	windowInfo.onWindowDisconnect;	// TODO: setup close event
 	windowInfo.onWindowResize;		// TODO: setup resize event
 	displaySurfaceCreateWindow(*pInstance, windowInfo, nullptr, &(*pInstance)->window);

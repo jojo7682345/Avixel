@@ -1,4 +1,3 @@
-#include <stdio.h>
 
 #ifndef DISABLE_ALL_TYPEDEFS
 typedef unsigned int uint;
@@ -102,8 +101,8 @@ typedef enum AvAssertLevel {
 #define AV_LOG_CODE_DEFAULT 1
 #define AV_VALIDATION_LEVEL_DEFAULT AV_LOG_LEVEL_ALL
 
-#define AV_LOCATION_ARGS uint64 line, const char* file, const char* func, FILE* fstream
-#define AV_LOCATION_PARAMS __LINE__, __FILE__,__func__, stdout
+#define AV_LOCATION_ARGS uint64 line, const char* file, const char* func
+#define AV_LOCATION_PARAMS __LINE__, __FILE__,__func__
 
 void avLog_(AvResult result, AV_LOCATION_ARGS, const char* msg);
 #define avLog(result, message) avLog_(result,AV_LOCATION_PARAMS, message)
@@ -138,11 +137,11 @@ typedef struct AvProjectInfo {
 
 #define AV_DEFINE_HANDLE(object) typedef struct object##_T* object;
 
-#ifdef __cplusplus
-#define AV_DEFINE_STRUCT(object,...) typedef struct object : AvStructure { __VA_ARGS__ } object; 
-#else
-#define AV_DEFINE_STRUCT(object,...) typedef struct object { AvStructure; __VA_ARGS__ } object;  
-#endif
+// #ifdef __cplusplus
+// #define AV_DEFINE_STRUCT(object,...) typedef struct object : AvStructure { __VA_ARGS__ } object; 
+// #else
+// #define AV_DEFINE_STRUCT(object,...) typedef struct object { AvStructure; __VA_ARGS__ } object;  
+// #endif
 
 typedef struct AvLogSettings {
 	AvLogLevel level;
@@ -160,7 +159,9 @@ typedef struct AvLogSettings {
 }AvLogSettings;
 extern const AvLogSettings avLogSettingsDefault;
 
-AV_DEFINE_STRUCT(AvWindowCreateInfo,
+typedef struct AvWindowCreateInfo{
+	AvStructureType sType;
+	void* next;
 	uint x;
 	uint y;
 	uint width;
@@ -168,17 +169,20 @@ AV_DEFINE_STRUCT(AvWindowCreateInfo,
 	const char* title;
 	bool resizable;
 	bool fullscreen;
-);
+}AvWindowCreateInfo;
 #define AV_WINDOW_POSITION_NOT_SPECIFIED (-1)
 
 // INSTANCE
 AV_DEFINE_HANDLE(AvInstance);
-AV_DEFINE_STRUCT(AvInstanceCreateInfo,
+typedef struct AvInstanceCreateInfo{
+	AvStructureType sType;
+	void* next;
 	AvProjectInfo projectInfo;
 	AvLogSettings* logSettings;
 	bool disableDeviceValidation;
 	AvWindowCreateInfo windowInfo;
-);
+
+}AvInstanceCreateInfo;
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance);
 void avInstanceDestroy(AvInstance instance);
 
