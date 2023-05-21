@@ -1,0 +1,24 @@
+{
+    "configurations": [
+        {
+            "name": "UBUNTU",
+            "forcedInclude": [
+                
+            ],
+            "includePath": [
+                "${env:VULKAN_SDK}/Include",
+                "${env:GLFW_SDK}/include",
+                "${workspaceFolder}/include"
+                
+            ],
+            "defines": [
+                "_DEBUG",
+                "UNICODE",
+                "_UNICODE"
+            ],
+            "cStandard": "c17",
+            "intelliSenseMode": "gcc-x64"
+        }
+    ],
+    "version": 4
+}

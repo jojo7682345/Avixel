@@ -1,0 +1,89 @@
+{
+  "version": "0.2.1",
+  "tasks": [
+    {
+      "taskLabel": "bootstrap",
+      "contextType": "custom",
+      "appliesTo": "/build/",
+      "type": "launch",
+      "workingDirectory": "${workspaceRoot}",
+      "commands": [
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo compiling build"
+          ]
+        },
+        {
+          "command": "gcc",
+          "args": [
+            "build/builder.c",
+            "-g",
+            "-ggdb",
+            "-o builder"
+          ]
+        },
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo build compile successfull"
+          ]
+        }
+      ]
+    },
+    {
+      "taskLabel": "build",
+      "contextType": "custom",
+      "workingDirectory": "${workspaceRoot}",
+      "appliesTo": "*",
+      "type": "launch",
+      "commands": [
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo started build"
+          ]
+        },
+        {
+          "command": "builder",
+          "args": [
+            "BUILD"
+          ]
+        },
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo build successfull"
+          ]
+        }
+      ]
+    },
+    {
+      "taskLabel": "clean",
+      "contextType": "clean",
+      "workingDirectory": "${workspaceRoot}",
+      "appliesTo": "*",
+      "type": "launch",
+      "commands": [
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo started clean"
+          ]
+        },
+        {
+          "command": "builder",
+          "args": [
+            "CLEAN"
+          ]
+        },
+        {
+          "command": "${env.COMSPEC}",
+          "args": [
+            "echo clean successfull"
+          ]
+        }
+      ]
+    }
+  ]
+}

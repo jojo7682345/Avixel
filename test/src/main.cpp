@@ -1,7 +1,5 @@
 
-#include <GraphicsUtilities/GraphicsUtilities.h>
-#define MU_DEBUG
-#include <MemoryUtilities/MemoryUtilities.h>
+#include <GraphicsUtilities.h>
 
 void buildInterface(AvInstance instance) {
 	AvInterface interface;
@@ -9,11 +7,11 @@ void buildInterface(AvInstance instance) {
 	AvInterfaceLoadFileInfo loadInfo = { 0 };
 	avInterfaceLoadFromFile(loadInfo, &interface, "./assets/testinterface.ui");
 	
-	AvInterfaceLoadDataInfo dataInfo = { 0 };
+	//AvInterfaceLoadDataInfo dataInfo = { 0 };
 	//avInterfaceLoadFromData(dataInfo, &interface, nullptr /*ptr to binary data*/, 0);
 
 
-	AvWindow mainWindow;
+	//AvWindow mainWindow;
 	//avInstanceGetPrimaryWindow(instance, &mainWindow);
 	//avWindowSetInterface(mainWindow, instance, interface);
 
@@ -66,7 +64,7 @@ int main(int argC, const char** argV) {
 
 	avInstanceDestroy(instance);
 	
-	PRINT_ALL_MEMORY_LEAKS();
+	//PRINT_ALL_MEMORY_LEAKS();
 
 	return 0;
 }
