@@ -16,7 +16,7 @@ TokenLL* appendToken(TokenLL* currentToken) {
 
 void freeTokensLL(TokenLL* token) {
 	TokenLL* nextToken = token->next;
-	while (nextToken != NULL) {
+	while (nextToken != nullptr) {
 		avFree(token);
 		token = nextToken;
 		nextToken = token->next;
@@ -30,7 +30,7 @@ void convertTokenLLtoTokenArr(TokenLL* tokenList, Token** tokens, uint* tokenCou
 	uint size = 0;
 	TokenLL* current = tokenList;
 
-	while (current != NULL) {
+	while (current != nullptr) {
 		current = current->next;
 		size += 1;
 	}
@@ -41,7 +41,7 @@ void convertTokenLLtoTokenArr(TokenLL* tokenList, Token** tokens, uint* tokenCou
 	// copy the tokens into the array
 	current = tokenList;
 	uint index = 0;
-	while (current != NULL) {
+	while (current != nullptr) {
 		memcpy((*tokens) + index, current, sizeof(Token));
 		current = current->next;
 		index++;

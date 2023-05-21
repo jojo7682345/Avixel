@@ -40,7 +40,7 @@ typedef struct ComponentNode {
 typedef struct PropertyNode {
 	const char* name;
 	bool isConst;
-	SyntaxTreeNode* value;
+	struct SyntaxTreeNode* value;
 } PropertyNode;
 
 typedef struct ValueNode {

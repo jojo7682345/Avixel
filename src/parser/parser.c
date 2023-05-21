@@ -1,6 +1,8 @@
 #include "parser.h"
 #include "tokenizer.h"
 #include "syntax.h"
+#include <stdio.h>
+
 
 AvResult parseFile(const char* buffer, uint64 size) {
 	Token* tokens;

@@ -97,7 +97,7 @@ void dynamicArrayGet(void* data, uint index, DynamicArray dynamicArray) {
 
 void dynamicArraySet(void* data, uint index, DynamicArray dynamicArray) {
 
-	void* ptr = dynamicArrayGetptr(index, dynamicArray);
+	void* ptr = dynamicArrayGetPtr(index, dynamicArray);
 
 	if (!ptr) {
 		avAssert(AV_MEMORY_ERROR, 0, "trying to write to invalid index");
