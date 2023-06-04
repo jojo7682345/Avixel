@@ -61,17 +61,33 @@ bool isBool(const char* str, uint size) {
 }
 
 bool isParam(const char* str, uint size) {
-	const char param[] = "param";
-	const uint paramSize = sizeof(param) / sizeof(char) - 1;
+
+	// export NAME = VALUE;
+	// import NAME = VALUE;
+	// define NAME = VALUE;
+
+	const char export[] = "export";
+	const char import[] = "import";
+	const char define[] = "define";
+	const uint paramSize = sizeof(export) / sizeof(char) - 1;
 
 	if (size != paramSize) {
 		return false;
 	}
 
-	if (!stringEquals(str, param, paramSize)) {
-		return false;
+	if (stringEquals(str, export, paramSize)) {
+		return true;
 	}
-	return true;
+
+	if (stringEquals(str, import, paramSize)) {
+		return true;
+	}
+
+	if (stringEquals(str, define, paramSize)) {
+		return true;
+	}
+
+	return false;
 
 }
 

@@ -13,6 +13,7 @@ AvResult parseFile(const char* buffer, uint64 size) {
 
 	avAssert(tokenize(buffer, size, &tokens, &tokenCount), AV_SUCCESS, "tokenizing");
 	avAssert(buildSyntaxTree(tokenCount, tokens, &syntaxTree), AV_SUCCESS, "generating syntax tree");
+	
 
 	// TODO: preprocessor
 

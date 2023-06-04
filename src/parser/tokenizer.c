@@ -55,8 +55,8 @@ void printTokens(Token* tokens, uint tokenCount) {
 		Token token = tokens[i];
 		const char* type;
 		switch (token.type) {
-		case TOKEN_TYPE_OPERATION:
-			type = "OPERATION";
+		case TOKEN_TYPE_INCLUDE:
+			type = "INCLUDE";
 			break;
 		case TOKEN_TYPE_OPEN:
 			type = "OPEN";
@@ -174,7 +174,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 
 			currentToken->token.str = buffer + ++i;
 			currentToken->token.len = 0;
-			currentToken->token.type = TOKEN_TYPE_OPERATION;
+			currentToken->token.type = TOKEN_TYPE_INCLUDE;
 			uint length = 0;
 			while (i <= size) {
 				c = buffer[i++];

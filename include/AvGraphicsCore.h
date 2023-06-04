@@ -72,6 +72,7 @@ typedef enum AvResult {
 	AV_ALREADY_EXISTS = AV_ERROR | 12,
 	AV_PARSE_ERROR = AV_ERROR | 13,
 	AV_INVALID_SIZE = AV_ERROR | 14,
+	AV_SYNTAX_ERROR = AV_ERROR | 15,
 } AvResult;
 
 typedef enum AvLogLevel {

@@ -33,7 +33,7 @@
     },
     {
       "taskLabel": "build",
-      "contextType": "custom",
+      "contextType": "build",
       "workingDirectory": "${workspaceRoot}",
       "appliesTo": "*",
       "type": "launch",
@@ -84,6 +84,11 @@
           ]
         }
       ]
+    },
+    {
+      "taskLabel": "task-AvGraphicsUtilitiesTest",
+      "appliesTo": "AvGraphicsUtilities/AvGraphicsUtilitiesTest.exe",
+      "type": "launch"
     }
   ]
 }
