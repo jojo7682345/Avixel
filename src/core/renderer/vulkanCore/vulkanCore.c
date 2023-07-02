@@ -2,6 +2,7 @@
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 #include <string.h>
+#include <stdio.h>
 
 #define MAX_FRAMES_IN_FLIGHT  2
 
@@ -809,6 +810,8 @@ void renderDeviceCreateResources(RenderDevice device, Window window) {
 
 	avFree(commandBuffers);
 	avFree(swapChainImages);
+
+
 }
 
 

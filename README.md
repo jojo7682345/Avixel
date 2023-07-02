@@ -43,12 +43,12 @@ A GUI library in written in C using Vulkan and GLFW
 ## Building
 clone the repository and run the following commands
 ### Windows
-```bash
+```shell
 gcc build/builder.c -o builder
 ./builder build
 ```
 ### linux
-```
+```shell
 gcc build/builder.c -o builder
 ./builder build
 sudo ./builder install

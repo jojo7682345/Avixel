@@ -1,6 +1,5 @@
 #pragma once
-#define __LOCAL_LIB__
-#include <GraphicsUtilities.h>
+#include <AvGraphicsUtilities/AvGraphicsUtilities.h>
 #include "util/util.h"
 #include "logging/logging.h"
 #include "renderer/renderer.h"

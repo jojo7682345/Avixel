@@ -1,6 +1,4 @@
 #include "core.h"
-#include "GraphicsUtilities.h"
-
 
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance) {
 

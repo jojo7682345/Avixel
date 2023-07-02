@@ -1,5 +1,5 @@
 
-#include <GraphicsUtilities.h>
+#include <AvGraphicsUtilities/AvGraphicsUtilities.h>
 
 void buildInterface(AvInstance instance) {
 	AvInterface interface;
@@ -21,7 +21,7 @@ void buildInterface(AvInstance instance) {
 
 int main(int argC, const char** argV) {
 
-	AvInstance instance;
+	AvInstance instance{};
 
 	AvLogSettings logSettings = avLogSettingsDefault;
 	logSettings.printSuccess = true;
