@@ -5,12 +5,18 @@ bool getSyntax_(uint tokenCount, Token* tokens, uint* index, ...) {
 
 	va_list format;
 	va_start(format, index);
+	TokenType token;
+	while ((token = va_arg(format, TokenType)) != TOKEN_TYPE_UNKNOWN) {
 
 
+
+
+	}
 
 	va_end(format);
 	return true;
 }
+
 #define getSyntax(tokenCount, tokens, index, ...) getSyntax_(tokenCount, tokens, index, __VA_ARGS__, TOKEN_TYPE_UNKNOWN)
 
 AvResult buildIncludeSyntax(uint tokenCount, Token* tokens, DynamicArray rootNodes, uint* index) {
