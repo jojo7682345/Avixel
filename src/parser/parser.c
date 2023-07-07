@@ -361,7 +361,7 @@ AvResult parseFile(const char* buffer, uint64 size) {
 	Token* tokens = nullptr;
 	uint tokenCount = 0;
 	avAssert(tokenize(buffer, size, &tokens, &tokenCount), AV_SUCCESS, "tokenizing");
-	printTokens(tokens);
+	//printTokens(tokens);
 	testTokens(buffer, size, tokens);
 	// TODO: parse syntax
 	// TODO: preprocessor

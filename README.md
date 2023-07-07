@@ -8,6 +8,13 @@ A GUI library in written in C using Vulkan and GLFW
  - Linux and rpi support
  - Add embedded system support (replace vulkan renderer with cpu renderer based on platform)
 
+## Primitive types
+- Rect
+- Image
+- Character
+- Viewport (later)
+- *Polygon (not certain)*
+
 ## Tasks
 - [x] Build system migration
 - [ ] Renderer
@@ -53,4 +60,7 @@ gcc build/builder.c -o builder
 ./builder build
 sudo ./builder install
 ```
-the test executable should appear in the AvGraphicsUtilities folder
+the test executable should appear in the AvGraphicsUtilities folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
+
+## Documentation
+Read the documentation in [[Documentation]]

@@ -1,7 +1,7 @@
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -std=c11 -ggdb -fPIC
+	flags: -std=c11 -ggdb -fPIC -D DEBUG
 	source: [
 		src
 	]

@@ -29,7 +29,7 @@ int main(int argC, const char** argV) {
 	logSettings.printType = true;
 	logSettings.printFunc = false;
 	logSettings.printError = true;
-	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
+	logSettings.validationLevel = AV_LOG_LEVEL_ALL;
 	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
 
 	AvWindowCreateInfo windowInfo = {};
@@ -52,6 +52,7 @@ int main(int argC, const char** argV) {
 	instanceInfo.logSettings = &logSettings;
 	instanceInfo.disableDeviceValidation = false;
 	instanceInfo.windowInfo = windowInfo;
+	
 
 	avAssert(
 		avInstanceCreate(instanceInfo, &instance),

@@ -4,7 +4,7 @@
   "configurations": [
     {
       "type": "native",
-      "name": "AvGraphicsUtilitiesTest.exe(1)",
+      "name": "AvGraphicsUtilitiesTest.exe",
       "project": "bin\\AvGraphicsUtilitiesTest.exe",
       "projectTarget": ""
     }

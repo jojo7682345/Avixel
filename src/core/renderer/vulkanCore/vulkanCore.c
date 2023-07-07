@@ -1,6 +1,8 @@
 #include "../renderer.h"
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
+
 #include <string.h>
 #include <stdio.h>
 
@@ -88,6 +90,8 @@ typedef struct Window_T {
 
 	uint frameCount;
 	Frame* frames;
+
+	VkRenderPass renderPass;
 } Window_T;
 
 typedef struct DisplaySurface_T {
@@ -179,12 +183,12 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 
 	glfwShowWindow((*window)->window);
 
-	glfwSetWindowCloseCallback((*window)->window, windowCreateInfo.onWindowDisconnect);
+	glfwSetWindowCloseCallback((*window)->window, (GLFWwindowclosefun) windowCreateInfo.onWindowDisconnect);
 	if (windowCreateInfo.properties.resizable) {
 		if (!windowCreateInfo.onWindowResize) {
 			avAssert(AV_UNSPECIFIED_CALLBACK, AV_SUCCESS, "window is resizable, but no resize callback is specified");
 		} else {
-			glfwSetWindowSizeCallback((*window)->window, windowCreateInfo.onWindowResize);
+			glfwSetWindowSizeCallback((*window)->window,(GLFWwindowsizefun) windowCreateInfo.onWindowResize);
 		}
 	}
 
@@ -811,11 +815,60 @@ void renderDeviceCreateResources(RenderDevice device, Window window) {
 	avFree(commandBuffers);
 	avFree(swapChainImages);
 
+	// renderpass 
+	VkAttachmentDescription colorAttachmentDescription = { 0 };
+	colorAttachmentDescription.format = window->frameFormat;
+	colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentReference = { 0 };
+	colorAttachmentReference.attachment = 0;
+	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = { 0 };
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentReference;
+
+	VkRenderPassCreateInfo renderPassInfo = { 0 };
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.pNext = nullptr;
+	renderPassInfo.flags = 0;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachmentDescription;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 0;
+	renderPassInfo.pDependencies = nullptr;
+
+	if (vkCreateRenderPass(device->device, &renderPassInfo, nullptr, &(window->renderPass)) != VK_SUCCESS) {
+		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating renderpass");
+	}
+	avAssert(AV_SUCCESS, AV_SUCCESS, "created renderpass");
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = { 0 };
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssembly.primitiveREstartEnable = VK_FALSE;
+
+	VkViewPort viewport = { 0 };
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float)window->frameExtent.width;
+	viewport.height = (float)window->frameExtent.height;4
 
 }
 
 
 void renderDeviceDestroyResources(RenderDevice device, Window window) {
+
+
+	vkDestroyRenderPass(device->device, window->renderPass, nullptr);
 
 	for (uint i = 0; i < window->frameCount; i++) {
 		frameDestroyResources(device, window, window->frames[i]);
