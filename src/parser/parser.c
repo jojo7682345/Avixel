@@ -4,15 +4,15 @@
 #include <stdio.h>
 
 
-AvResult parseFile(const char* buffer, uint64 size) {
+AvResult parseFile(const char* buffer, uint64 size, const char* fileName) {
 	Token* tokens;
 	uint tokenCount;
 	DynamicArray syntaxTree;
 	dynamicArrayCreate(sizeof(SyntaxTreeNode), &syntaxTree);
 
 
-	avAssert(tokenize(buffer, size, &tokens, &tokenCount), AV_SUCCESS, "tokenizing");
-	avAssert(buildSyntaxTree(tokenCount, tokens, &syntaxTree), AV_SUCCESS, "generating syntax tree");
+	avAssert(tokenize(buffer, size, &tokens, &tokenCount, fileName), AV_SUCCESS, "tokenizing");
+	avAssert(buildSyntaxTree(tokenCount, tokens, syntaxTree), AV_SUCCESS, "generating syntax tree");
 	
 
 	// TODO: preprocessor
@@ -44,7 +44,7 @@ AvResult avInterfaceLoadFromFile(AvInterfaceLoadFileInfo info, AvInterface* inte
 		avAssert(AV_IO_ERROR, 0, "failed to close file");
 	}
 	;
-	avAssert(parseFile(buffer, size), AV_SUCCESS, "file parsed succesfully");
+	avAssert(parseFile(buffer, size, fileName), AV_SUCCESS, "file parsed succesfully");
 	avFree(buffer);
 	return AV_SUCCESS;
 }

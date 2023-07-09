@@ -8,7 +8,10 @@ typedef struct TokenLL {
 	void* next;
 }TokenLL;
 
-TokenLL* appendToken(TokenLL* currentToken) {
+TokenLL* appendToken(TokenLL* currentToken, uint lineNumber, const char* fileName) {
+	currentToken->token.location.lineNumber = lineNumber;
+	currentToken->token.location.file = fileName;
+
 	TokenLL* newToken = avAllocate(sizeof(TokenLL), 1, "allocating new token");
 	currentToken->next = newToken;
 	return newToken;
@@ -50,87 +53,99 @@ void convertTokenLLtoTokenArr(TokenLL* tokenList, Token** tokens, uint* tokenCou
 	*tokenCount = size;
 }
 
+const char* tokenTypeAsString(TokenType token) {
+	const char* type;
+	switch (token) {
+	case TOKEN_TYPE_INCLUDE:
+		type = "INCLUDE";
+		break;
+	case TOKEN_TYPE_OPEN:
+		type = "OPEN";
+		break;
+	case TOKEN_TYPE_CLOSE:
+		type = "CLOSE";
+		break;
+	case TOKEN_TYPE_ASSIGNMENT:
+		type = "ASSIGNMENT";
+		break;
+	case TOKEN_TYPE_CONST:
+		type = "CONST";
+		break;
+	case TOKEN_TYPE_REFERENCE:
+		type = "REFERENCE";
+		break;
+	case TOKEN_TYPE_TEXT:
+		type = "TEXT";
+		break;
+	case TOKEN_TYPE_END:
+		type = "END";
+		break;
+	case TOKEN_TYPE_COLOR:
+		type = "COLOR";
+		break;
+	case TOKEN_TYPE_PROTOTYPE:
+		type = "PROTOTYPE";
+		break;
+	case TOKEN_TYPE_NAME:
+		type = "NAME";
+		break;
+	case TOKEN_TYPE_NUMBER:
+		type = "NUMBER";
+		break;
+	case TOKEN_TYPE_END_OF_FILE:
+		type = "END_OF_FILE";
+		break;
+	case TOKEN_TYPE_ACCESS:
+		type = "ACCESS";
+		break;
+	case TOKEN_TYPE_POOL_OPEN:
+		type = "POOL_OPEN";
+		break;
+	case TOKEN_TYPE_POOL_CLOSE:
+		type = "POOL_CLOSE";
+		break;
+	case TOKEN_TYPE_BOOL:
+		type = "BOOLEAN";
+		break;
+	case TOKEN_TYPE_PARAMETER:
+		type = "PARAM";
+		break;
+	default:
+		type = "UNKNOWN";
+		break;
+	}
+	return type;
+}
+
 void printTokens(Token* tokens, uint tokenCount) {
 	for (uint i = 0; i < tokenCount; i++) {
 		Token token = tokens[i];
-		const char* type;
-		switch (token.type) {
-		case TOKEN_TYPE_INCLUDE:
-			type = "INCLUDE";
-			break;
-		case TOKEN_TYPE_OPEN:
-			type = "OPEN";
-			break;
-		case TOKEN_TYPE_CLOSE:
-			type = "CLOSE";
-			break;
-		case TOKEN_TYPE_ASSIGNMENT:
-			type = "ASSIGNMENT";
-			break;
-		case TOKEN_TYPE_CONST:
-			type = "CONST";
-			break;
-		case TOKEN_TYPE_REFERENCE:
-			type = "REFERENCE";
-			break;
-		case TOKEN_TYPE_TEXT:
-			type = "TEXT";
-			break;
-		case TOKEN_TYPE_END:
-			type = "END";
-			break;
-		case TOKEN_TYPE_COLOR:
-			type = "COLOR";
-			break;
-		case TOKEN_TYPE_PROTOTYPE:
-			type = "PROTOTYPE";
-			break;
-		case TOKEN_TYPE_NAME:
-			type = "NAME";
-			break;
-		case TOKEN_TYPE_NUMBER:
-			type = "NUMBER";
-			break;
-		case TOKEN_TYPE_END_OF_FILE:
-			type = "END_OF_FILE";
-			break;
-		case TOKEN_TYPE_ACCESS:
-			type = "ACCESS";
-			break;
-		case TOKEN_TYPE_POOL_OPEN:
-			type = "POOL_OPEN";
-			break;
-		case TOKEN_TYPE_POOL_CLOSE:
-			type = "POOL_CLOSE";
-			break;
-		case TOKEN_TYPE_BOOL:
-			type = "BOOLEAN";
-			break;
-		case TOKEN_TYPE_PARAMETER:
-			type = "PARAM";
-			break;
-		default:
-			type = "UNKNOWN";
-			break;
-		}
-		printf("%s: %.*s\n", type, token.len, token.str);
+		const char* type = tokenTypeAsString(token.type);
+		printf("%s: %.*s line#:%i file:%s\n", type, token.len, token.str, token.location.lineNumber, token.location.file);
 	}
 }
 
-AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCount) {
+AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCount, const char* fileName) {
 
 	const char* cPtr = buffer;
 	char c;
 
+	TokenLocationDetails locationDetails = {};
+	locationDetails.file = fileName;
 
 	TokenLL* currentToken = avAllocate(sizeof(TokenLL), 1, "allocationg start token");
 	TokenLL* tokenList = currentToken;
+
+	uint lineNumber = 1;
 
 	for (uint i = 0; i < size; i++) {
 		c = buffer[i];
 
 		switch (c) {
 		case '\n':
+		{
+			lineNumber++;
+		}
 		case '\t':
 		case ' ':
 		case '\r':
@@ -140,6 +155,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			if (buffer[i + 1] == '/') {
 				// skip to next line
 				skipToNextLine(buffer, size, &i);
+				lineNumber++;
 			}
 			break;
 		case '#':
@@ -163,10 +179,11 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				if (length == 6 || length == 8) {
 					currentToken->token.len = length;
 					currentToken->token.type = TOKEN_TYPE_COLOR;
-					currentToken = appendToken(currentToken);
+					currentToken = appendToken(currentToken, lineNumber, fileName);
 				} else {
-					avAssert(AV_PARSE_ERROR, AV_SUCCESS, "invalid color format");
-					return AV_PARSE_ERROR;
+
+					avAssert(AV_UNABLE_TO_PARSE, AV_SUCCESS, "invalid color format");
+					return AV_UNABLE_TO_PARSE;
 				}
 				i -= 2;
 				break;
@@ -184,7 +201,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				length++;
 			}
 			currentToken->token.len = length;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			i--;
 			break;
 		}
@@ -192,31 +209,31 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_OPEN;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case ')':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_CLOSE;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '=':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_ASSIGNMENT;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '*':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_CONST;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '$':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_REFERENCE;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '"':
 			currentToken->token.str = buffer + ++i;
@@ -229,19 +246,19 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 					break;
 				}
 				if (!isTextCharacter(c)) {
-					avAssert(AV_PARSE_ERROR, AV_SUCCESS, "invalid string delimiter");
+					avAssert(AV_UNABLE_TO_PARSE, AV_SUCCESS, "invalid string delimiter");
 				}
 				length++;
 			}
 			currentToken->token.len = length;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			i--;
 			break;
 		case ';':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_END;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '@':
 		{
@@ -257,7 +274,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				length++;
 			}
 			currentToken->token.len = length;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			i--;
 			break;
 		}
@@ -265,19 +282,19 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_ACCESS;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case '[':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_POOL_OPEN;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		case ']':
 			currentToken->token.str = buffer + i;
 			currentToken->token.len = 1;
 			currentToken->token.type = TOKEN_TYPE_POOL_CLOSE;
-			currentToken = appendToken(currentToken);
+			currentToken = appendToken(currentToken, lineNumber, fileName);
 			break;
 		default:
 			if (isDecNumber(c)) {
@@ -288,7 +305,7 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 					currentToken->token.len++;
 				}
 				i -= 2;
-				currentToken = appendToken(currentToken);
+				currentToken = appendToken(currentToken, lineNumber, fileName);
 			} else if (isNameCharacter(c)) {
 				currentToken->token.str = buffer + i;
 				currentToken->token.len = 0;
@@ -305,12 +322,12 @@ AvResult tokenize(const char* buffer, uint64 size, Token** tokens, uint* tokenCo
 				if (isParam(currentToken->token.str, currentToken->token.len)) {
 					currentToken->token.type = TOKEN_TYPE_PARAMETER;
 				}
-				currentToken = appendToken(currentToken);
+				currentToken = appendToken(currentToken, lineNumber, fileName);
 			} else {
 				char errorMessage[64];
 				sprintf(errorMessage, "invalid character '%c'", c);
-				avAssert(AV_PARSE_ERROR, AV_SUCCESS, errorMessage);
-				return AV_PARSE_ERROR;
+				avAssert(AV_UNABLE_TO_PARSE, AV_SUCCESS, errorMessage);
+				return AV_UNABLE_TO_PARSE;
 			}
 			break;
 

@@ -168,8 +168,11 @@ void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
 	case AV_ALREADY_EXISTS:
 		message = "already exists";
 		break;
-	case AV_PARSE_ERROR:
+	case AV_UNABLE_TO_PARSE:
 		message = "parse error";
+		break;
+	case AV_INVALID_SYNTAX:
+		message = "invalid syntax";
 		break;
 	default:
 		message = error_code;

@@ -22,3 +22,5 @@ bool isNameCharacter(char chr);
 bool isTextCharacter(char chr);
 
 void skipToNextLine(const char* buffer, uint64 size, uint* i);
+
+

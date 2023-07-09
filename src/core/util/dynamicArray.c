@@ -54,7 +54,7 @@ void dynamicArrayAddRange(void* data, uint count, DynamicArray dynamicArray) {
 		dynamicArray->data = avReallocate(dynamicArray->data, dynamicArray->dataSize, dynamicArray->allocatedCount, "increasing size of dynamic array");
 	}
 
-	memcpy((byte*)dynamicArray->data + dynamicArray->count, data, dynamicArray->dataSize * count);
+	memcpy((byte*)dynamicArray->data + (dynamicArray->count * dynamicArray->dataSize), data, dynamicArray->dataSize * count);
 	dynamicArray->count += count;
 
 }
@@ -79,7 +79,7 @@ void* dynamicArrayGetPtr(uint index, DynamicArray dynamicArray) {
 		avAssert(AV_OUT_OF_BOUNDS, 0, "accessing dynamic array out of bounds");
 		return nullptr;
 	}
-	return (byte*)dynamicArray->data + index;
+	return (byte*)dynamicArray->data + index * dynamicArray->dataSize;
 }
 
 void dynamicArrayGet(void* data, uint index, DynamicArray dynamicArray) {
