@@ -125,6 +125,8 @@ AvResult buildParameterSyntax(uint tokenCount, Token* tokens, DynamicArray rootN
 AvResult buildComponentSyntax(uint tokenCount, Token* tokens, DynamicArray rootNodes, uint* index) {
 
 	// TODO: implement
+	return AV_INVALID_SYNTAX;
+
 
 	return AV_SUCCESS;
 }
@@ -132,6 +134,7 @@ AvResult buildComponentSyntax(uint tokenCount, Token* tokens, DynamicArray rootN
 AvResult buildPrototypeSyntax(uint tokenCount, Token* tokens, DynamicArray rootNodes, uint* index) {
 
 	// TODO: implement
+	return AV_INVALID_SYNTAX;
 
 	return AV_SUCCESS;
 }
@@ -142,32 +145,44 @@ AvResult buildSyntaxTree(uint tokenCount, Token* tokens, DynamicArray rootNodes)
 		AvResult result;
 		switch (tokens[index].type) {
 		case TOKEN_TYPE_INCLUDE:
-			avAssert(
-				result = buildIncludeSyntax(tokenCount, tokens, rootNodes, &index),
-				AV_SUCCESS,
-				"invalid operation"
-			);
+			result = buildIncludeSyntax(tokenCount, tokens, rootNodes, &index);
+			if (result) {
+				avAssert(
+					result,
+					AV_SUCCESS,
+					"invalid operation"
+				);
+			}
 			break;
 		case TOKEN_TYPE_PARAMETER:
-			avAssert(
-				result = buildParameterSyntax(tokenCount, tokens, rootNodes, &index),
-				AV_SUCCESS,
-				"invalid parameter"
-			);
+			result = buildParameterSyntax(tokenCount, tokens, rootNodes, &index);
+			if (result) {
+				avAssert(
+					result,
+					AV_SUCCESS,
+					"invalid parameter"
+				);
+			}
 			break;
 		case TOKEN_TYPE_NAME:
-			avAssert(
-				result = buildComponentSyntax(tokenCount, tokens, rootNodes, &index),
-				AV_SUCCESS,
-				"invalid component"
-			);
+			result = buildComponentSyntax(tokenCount, tokens, rootNodes, &index);
+			if (result) {
+				avAssert(
+					result,
+					AV_SUCCESS,
+					"invalid component"
+				);
+			}
 			break;
 		case TOKEN_TYPE_PROTOTYPE:
-			avAssert(
-				result = buildPrototypeSyntax(tokenCount, tokens, rootNodes, &index),
-				AV_SUCCESS,
-				"invalid prototype"
-			);
+			result = buildPrototypeSyntax(tokenCount, tokens, rootNodes, &index);
+			if (result) {
+				avAssert(
+					result,
+					AV_SUCCESS,
+					"invalid prototype"
+				);
+			}
 			break;
 		default:
 			avAssert(AV_UNABLE_TO_PARSE, 0, "Invalid top level token found while building syntax tree");

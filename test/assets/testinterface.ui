@@ -9,7 +9,7 @@ export buttonColor = otherColor_; // export the other color
 
 export buttonColor = #ff0000;	// export the color
 import buttonColor = #00ff00;	// import the color, but default if not exported
-import buttonColor;				// import the color, but give an error if not defined
+//import buttonColor;				// import the color, but give an error if not defined
 define buttonColor = #0000ff;	// define the color, give an error if it is already defined
 
 Window(
