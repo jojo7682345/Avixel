@@ -59,8 +59,15 @@ typedef struct RenderDeviceCreateInfo {
 	Window window;
 } RenderDeviceCreateInfo;
 
-void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* device);
-void renderDeviceCreateResources(RenderDevice device, Window window);
+typedef struct PipelineCreateInfo {
 
-void renderDeviceDestroyResources(RenderDevice device, Window window);
+} PipelineCreateInfo;
+
+void renderDeviceCreate(AvInstance instance, RenderDeviceCreateInfo createInfo, RenderDevice* device);
+void renderDeviceCreateResources(RenderDevice device);
+void renderDeviceCreatePipelines(RenderDevice device, uint pipelineCount, PipelineCreateInfo* createInfos);
+
+
+void renderDeviceDestroyPipelines(RenderDevice device);
+void renderDeviceDestroyResources(RenderDevice device);
 void renderDeviceDestroy(RenderDevice device);

@@ -5,7 +5,7 @@
 .so
 .a
 
-.obsidian
+
 
 #build file
 bin/*
@@ -16,12 +16,15 @@ tmp/
 builder*
 builder.exe
 .vs/*
+!build/builder.c
+!build/builder.h
 
 #project tasks and launch configurations for visual studio
 !.vs/*.vs.json
+.obsidian
+CppProperties.json
 
 #project export files
 AvGraphicsUtilities/
 
 
-/builder.exe
