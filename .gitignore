@@ -26,6 +26,5 @@ CppProperties.json
 
 #project export files
 AvGraphicsUtilities/
-
-.obsidian
+!include/AvGraphicsUtilities
 
