@@ -80,7 +80,6 @@ void logDeviceValidation(const char* renderer, AvLogLevel level, ValidationMessa
 		break;
 	}
 	fprintf(stdout, " -> %s\n", message);
-
 }
 
 void printTags(AvResult result, AV_LOCATION_ARGS, const char* msg) {
