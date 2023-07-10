@@ -324,7 +324,7 @@ int checkRecompileRequired(const char* dir, const char* file) {
 	printf("opened dependency file\n");
 	
 	fclose(dep);
-	free(buffer);
+	//free(buffer);
 	return 0;
 }
 
