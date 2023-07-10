@@ -290,63 +290,24 @@ int filesEqual(const char* newFile, const char* original) {
 
 }
 
-int checkRecompileRequired(const char* dir, const char* file) {
-	char* depFile;
-	if (ENDS_WITH(file, ".o")) {
 
-		depFile = CONCAT(NOEXT(file),".d");
-
-	} else {
-		depFile = CONCAT(file, ".d");
-	}
-
-	printf("opening dependency file %s\\%s\n", dir,depFile);
-
-	FILE* dep = fopen(PATH(dir,depFile), "r");
-	if (!dep) {
-		fclose(dep);
-		printf("no dependency file found\n");
-		return 1;
-	}
-	fseek(dep, 0, SEEK_END);
-	size_t size = ftell(dep);
-	fseek(dep, 0, SEEK_SET);
-
-	//char* buffer = (char*)malloc(size);
-
-	//if (fgets(buffer, size, dep) == NULL) {
-		//printf("unable to read dependency file\n");
-		//fclose(dep);
-		//free(buffer);
-		//return 1;
-	//};
-
-	printf("opened dependency file\n");
-	
-	fclose(dep);
-	//free(buffer);
-	return 0;
-}
 
 void compileCodeFile(const char* source, char* file, const char* imBuild, const char*** compiledFiles, size_t* compiledCount, int includeCount, const char** include, const char* compiler, const char* flags, const char* outType) {
 
 	const char* outFile = PATH(imBuild, CONCAT(NOEXT(file), outType));
+	
+	Cstr_Array args = { 0 };
+	args = cstr_array_append(args, compiler);
+	args = cstr_array_concat(args, splitString(flags, ' '));
+	Cstr_Array includes = { .count = includeCount,.elems = include };
+	args = cstr_array_concat(args, includes);
+	args = cstr_array_append(args, "-MD");
+	args = cstr_array_append(args, "-c");
+	args = cstr_array_append(args, "-o");
+	args = cstr_array_append(args, outFile);
+	args = cstr_array_append(args, PATH(source, file));
+	CMD_ARR(args);
 
-	//if (checkRecompileRequired(imBuild, CONCAT(NOEXT(file), outType))) {
-	//}
-		Cstr_Array args = { 0 };
-		args = cstr_array_append(args, compiler);
-		args = cstr_array_concat(args, splitString(flags, ' '));
-		Cstr_Array includes = { .count = includeCount,.elems = include };
-		args = cstr_array_concat(args, includes);
-		//args = cstr_array_append(args, "");
-		args = cstr_array_append(args, "-c");
-		args = cstr_array_append(args, "-o");
-		args = cstr_array_append(args, outFile);
-		args = cstr_array_append(args, PATH(source, file));
-		CMD_ARR(args);
-
-	//}
 	void* data = realloc(*compiledFiles, sizeof(const char*) * (*compiledCount + 1));
 	if (!data) {
 		PANIC("mem");
