@@ -23,6 +23,4 @@ builder.exe
 #project export files
 AvGraphicsUtilities/
 
-!include/AvGraphicsUtilities
-
 /builder.exe
