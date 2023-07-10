@@ -23,4 +23,6 @@ builder.exe
 #project export files
 AvGraphicsUtilities/
 
+.obsidian
+
 /builder.exe
