@@ -5,7 +5,7 @@
 .so
 .a
 
-
+.obsidian
 
 #build file
 bin/*
