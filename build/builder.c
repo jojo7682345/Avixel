@@ -362,7 +362,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 		Cstr_Array args = {0};
 		args = cstr_array_append(args, project.compiler);
-		if (project.flags[0] == '\0') {
+		if (project.flags[0] != '\0') {
 			args = cstr_array_concat(args, splitString(project.flags, ' '));
 		}
 		args = cstr_array_append(args, "-o");
@@ -405,7 +405,9 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 		Cstr_Array args = {0};
 		args = cstr_array_append(args, project.compiler);
-		args = cstr_array_concat(args, splitString(project.flags,' '));
+		if (project.flags[0] != '\0') {
+			args = cstr_array_concat(args, splitString(project.flags, ' '));
+		}
 		args = cstr_array_append(args, "-shared");
 		args = cstr_array_append(args, "-o");
 		args = cstr_array_append(args, PATH("lib", output));
