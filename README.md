@@ -59,12 +59,12 @@ clone the repository and run the following commands
 ### Windows
 ```shell
 gcc build/builder.c -o builder
-./builder build
+./builder build AvGraphicsUtilities
 ```
 ### linux
 ```shell
 gcc build/builder.c -o builder
-./builder build
+./builder build AvGraphicsUtilities
 sudo ./builder install
 ```
 the test executable should appear in the AvGraphicsUtilities folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
