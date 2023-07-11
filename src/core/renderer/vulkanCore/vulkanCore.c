@@ -1,5 +1,5 @@
 #include "../renderer.h"
-#include <shader.h>
+//#include <basic_pipeline/basic_frag.h>
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -938,6 +938,9 @@ void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, Pipe
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
 	
+
+	// create basic pipeline
+
 
 }
 
