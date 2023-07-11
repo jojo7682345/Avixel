@@ -25,6 +25,6 @@ builder.exe
 CppProperties.json
 
 #project export files
-AvGraphicsUtilities/
+AvGraphicsUtilities
 !include/AvGraphicsUtilities
 

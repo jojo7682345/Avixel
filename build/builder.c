@@ -416,59 +416,60 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 	}
 	case PROJECT_TYPE_CUSTOM:
 	{
-		for (int i = 0; i < strlen(project.outDir); i++) {
-			if (project.outDir[i] == '/') {
-				project.outDir[i] = PATH_SEP[0];
-			}
-		}
-		if (!PATH_EXISTS(project.outDir)) {
-			MKDIRS(project.outDir);
-		}
-		for (int i = 0; i < compiledCount; i++) {
-
-			const char* outFile = ((char*)compiledFiles[i]) + (strlen("build") + strlen(PATH_SEP) + strlen("tmp") + strlen(PATH_SEP) + strlen(project.name) + strlen(PATH_SEP));
-
-			
-			char* nextPath = project.outDir;
-			char* curPath = (char*)outFile;
-			char* othPath = project.outDir;
-			while (1) {
-				char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(othPath));
-				nextPath = nextSep;
-				
-				if (nextPath == 0) {
-					break;
+		if (project.outDir[0]) {
+			for (int i = 0; i < strlen(project.outDir); i++) {
+				if (project.outDir[i] == '/') {
+					project.outDir[i] = PATH_SEP[0];
 				}
-				if (memcmp(curPath, othPath, nextPath - othPath) == 0) {
-					curPath += (nextPath - othPath) + 1;
-					othPath += (nextPath - othPath) + 1;
+			}
+			if (!PATH_EXISTS(project.outDir)) {
+				MKDIRS(project.outDir);
+			}
+			for (int i = 0; i < compiledCount; i++) {
+
+				const char* outFile = ((char*)compiledFiles[i]) + (strlen("build") + strlen(PATH_SEP) + strlen("tmp") + strlen(PATH_SEP) + strlen(project.name) + strlen(PATH_SEP));
+
+
+				char* nextPath = project.outDir;
+				char* curPath = (char*)outFile;
+				char* othPath = project.outDir;
+				while (1) {
+					char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(othPath));
+					nextPath = nextSep;
+
+					if (nextPath == 0) {
+						break;
+					}
+					if (memcmp(curPath, othPath, nextPath - othPath) == 0) {
+						curPath += (nextPath - othPath) + 1;
+						othPath += (nextPath - othPath) + 1;
+						nextPath += 1;
+					} else {
+						break;
+					}
+
+				}
+				const char* out = PATH(project.outDir, curPath);
+				nextPath = out;
+				while (1) {
+					char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(out));
+					nextPath = nextSep;
+
+					if (nextPath == 0) {
+						break;
+					}
+					char imDir[512] = { 0 };
+					memcpy(imDir, out, nextPath - out);
 					nextPath += 1;
-				} else {
-					break;
+					imDir[511] = '\0';
+					if (!PATH_EXISTS(imDir) && IS_DIR(imDir)) {
+						MKDIRS(imDir);
+					}
 				}
-				
-			}
-			const char* out = PATH(project.outDir, curPath);
-			nextPath = out;
-			while (1) {
-				char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(out));
-				nextPath = nextSep;
-				
-				if (nextPath == 0) {
-					break;
-				}
-				char imDir[512] = { 0 };
-				memcpy(imDir, out, nextPath - out);
-				nextPath += 1;
-				imDir[511] = '\0';
-				if (!PATH_EXISTS(imDir) && IS_DIR(imDir)) {
-					MKDIRS(imDir);
-				}
-			}
 
-			copyFile(compiledFiles[i], out);
+				copyFile(compiledFiles[i], out);
+			}
 		}
-		
 
 		return "";
 	}

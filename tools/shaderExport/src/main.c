@@ -35,9 +35,14 @@ int main(int argC, char* argV[]) {
 
 	char* outFile = 0;
 	char* inFile = 0;
+	int generateDepFile = 0;
 	while (1) {
 		char* argument = shift_args(&argC, &argV);
 		if (strcmp(argument, "-c") == 0) {
+			continue;
+		}
+		if (strcmp(argument, "-MD") == 0) {
+			generateDepFile = 1;
 			continue;
 		}
 		if (strcmp(argument, "-o") == 0) {
@@ -68,7 +73,7 @@ int main(int argC, char* argV[]) {
 	}
 	memset(buffer, 0, size + 1);
 	if (fread(buffer, sizeof(char), size, compiled) != size) {
-		printf("unable to read entire file!\n");
+		printf("unable to read entire file\n");
 		return -1;
 	}
 
@@ -81,7 +86,7 @@ int main(int argC, char* argV[]) {
 	FILE* file = fopen(outFile, "w");
 
 	if (!file) {
-		printf("unable to open file %s!\n", outFile);
+		printf("unable to open file %s\n", outFile);
 	}
 
 	char* shaderName;
@@ -129,7 +134,7 @@ int main(int argC, char* argV[]) {
 	for (int i = 0; i < size; i++) {
 		if (i % 16 == 0) {
 			fprintf(file, "\n\t");
-		} else if(i % 8 == 0) {
+		} else if (i % 8 == 0) {
 			fprintf(file, " ");
 		}
 		fprintf(file, "0x%02x, ", buffer[i]);
@@ -142,5 +147,26 @@ int main(int argC, char* argV[]) {
 	printf("Generation successfull!\n");
 
 	free(buffer);
+
+	if (generateDepFile) {
+		size_t pathSize = strlen(outFile);
+		size_t bufferSize = pathSize + 3;
+		char* buffer = (char*)malloc(bufferSize);
+		if (!buffer) {
+			printf("out of mem!\n");
+			return -1;
+		}
+		memset(buffer, 0, bufferSize);
+		memcpy(buffer, outFile, pathSize);
+		buffer[pathSize + 0] = '.';
+		buffer[pathSize + 1] = 'd';
+		buffer[pathSize + 2] = '\0';
+
+		FILE* depFile = fopen(buffer, "w");
+		fprintf(depFile, "%s: %s", outFile, inFile);
+		fclose(depFile);
+		free(buffer);
+	}
+
 	return 0;
 }

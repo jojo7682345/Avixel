@@ -10,7 +10,6 @@ shaderExport {
 }
 compileShaders {
 	type: CUSTOM
-	outDir: shaders/compiled
 	outType: .spv
 	compiler: glslc
 	source: [
@@ -28,7 +27,7 @@ exportShaders {
 	outType: .h
 	compiler: bin/shaderExport
 	source: [
-		shaders/compiled
+		build/tmp/compileShaders
 	]
 	files: [
 		.spv
