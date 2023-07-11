@@ -45,4 +45,4 @@ clone the repository and run the following commands
 gcc build/builder.c -o builder
 ./builder build
 ```
-the test executable should appear in AvGraphicsUtilities
+the test executable should appear in the AvGraphicsUtilities folder
