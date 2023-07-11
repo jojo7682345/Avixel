@@ -1,6 +1,4 @@
 #include "core.h"
-#include "GraphicsUtilities.h"
-
 
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance) {
 
@@ -48,17 +46,21 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 
 	RenderDeviceCreateInfo renderDeviceInfo = { 0 };
 	renderDeviceInfo.window = (*pInstance)->window;
-	renderDeviceCreate(*pInstance, (*pInstance)->window, &(*pInstance)->renderDevice);
+	renderDeviceCreate(*pInstance, renderDeviceInfo, &(*pInstance)->renderDevice);
 
-	renderDeviceCreateResources((*pInstance)->renderDevice, (*pInstance)->window);
+	renderDeviceCreateResources((*pInstance)->renderDevice);
+
+
+	renderDeviceCreatePipelines((*pInstance)->renderDevice,0,nullptr);
 
 	return AV_SUCCESS;
 }
 
 void avInstanceDestroy(AvInstance instance) {
 
+	renderDeviceDestroyPipelines(instance->renderDevice);
 	
-	renderDeviceDestroyResources(instance->renderDevice, instance->window);
+	renderDeviceDestroyResources(instance->renderDevice);
 
 	renderDeviceDestroy(instance->renderDevice);
 

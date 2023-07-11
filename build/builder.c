@@ -29,6 +29,7 @@ typedef enum ProjectType {
 	PROJECT_TYPE_LIB,
 	PROJECT_TYPE_EXE,
 	PROJECT_TYPE_DLL,
+	PROJECT_TYPE_CUSTOM,
 	PROJECT_TYPE_UNKNOWN,
 }ProjectType;
 
@@ -73,6 +74,9 @@ ProjectType getProjectType(const char* type) {
 	}
 	if (strcmp(str, "DLL") == 0) {
 		return PROJECT_TYPE_DLL;
+	}
+	if (strcmp(str, "CUSTOM") == 0) {
+		return PROJECT_TYPE_CUSTOM;
 	}
 	return PROJECT_TYPE_UNKNOWN;
 }
@@ -119,8 +123,6 @@ typedef struct Project {
 	char flags[512];
 	int s_libCount;
 	char** s_libs;
-	int d_libCount;
-	char** d_libs;
 	int includeCount;
 	char** include;
 	int libdirCount;
@@ -128,6 +130,12 @@ typedef struct Project {
 	char compiler[64];
 	int exportCount;
 	char** exports;
+
+	char outDir[512];
+	char outType[64];
+	int fileTypeCount;
+	char** fileTypes;
+
 	void* next;
 } Project;
 
@@ -238,18 +246,68 @@ Cstr_Array splitString(const char* str, char del){
 	return array;
 }
 
-void compileCodeFile(const char* source, const char* file, const char* imBuild, const char*** compiledFiles, size_t* compiledCount, int includeCount, const char** include, const char* compiler, const char* flags){
-	const char* outFile = PATH(imBuild, CONCAT(NOEXT(file), ".o"));
-	Cstr_Array args = {0};
+int filesEqual(const char* newFile, const char* original) {
+
+	FILE* nf = fopen(newFile, "rb");
+	FILE* org = fopen(original, "rb");
+	if (!nf) {
+		PANIC("Unable to open file %s\n", newFile);
+	}
+	if (!original) {
+		return 0;
+	}
+	fseek(nf, 0, SEEK_END);
+	fseek(org, 0, SEEK_END);
+	size_t size1 = ftell(nf);
+	size_t size2 = ftell(org);
+	fseek(nf, 0, SEEK_SET);
+	fseek(org, 0, SEEK_SET);
+	if (size1 != size2) {
+		fclose(nf);
+		fclose(org);
+		return 0;
+	}
+
+	char* buffer1 = (char*)malloc(size1);
+	char* buffer2 = (char*)malloc(size2);
+
+	if (fread(buffer1, 1, size1, nf) != size1 || 
+		fread(buffer2, 1, size1, org) != size1) {
+		fclose(nf);
+		fclose(org);
+		PANIC("unable to read both files entirly");
+		return 0;
+	}
+	fclose(nf);
+	fclose(org);
+
+	int equals =  memcmp(buffer1, buffer2, size1) == 0;
+	
+	free(buffer1);
+	free(buffer2);
+
+	return equals;
+
+}
+
+
+
+void compileCodeFile(const char* source, char* file, const char* imBuild, const char*** compiledFiles, size_t* compiledCount, int includeCount, const char** include, const char* compiler, const char* flags, const char* outType) {
+
+	const char* outFile = PATH(imBuild, CONCAT(NOEXT(file), outType));
+	
+	Cstr_Array args = { 0 };
 	args = cstr_array_append(args, compiler);
-	args = cstr_array_concat(args, splitString(flags,' '));
-	Cstr_Array includes = {.count=includeCount,.elems=include};
+	args = cstr_array_concat(args, splitString(flags, ' '));
+	Cstr_Array includes = { .count = includeCount,.elems = include };
 	args = cstr_array_concat(args, includes);
+	args = cstr_array_append(args, "-MD");
 	args = cstr_array_append(args, "-c");
 	args = cstr_array_append(args, "-o");
 	args = cstr_array_append(args, outFile);
-	args = cstr_array_append(args,PATH(source,file));
+	args = cstr_array_append(args, PATH(source, file));
 	CMD_ARR(args);
+
 	void* data = realloc(*compiledFiles, sizeof(const char*) * (*compiledCount + 1));
 	if (!data) {
 		PANIC("mem");
@@ -259,20 +317,28 @@ void compileCodeFile(const char* source, const char* file, const char* imBuild, 
 	*compiledCount += 1;
 }
 
-void compile(const char* source, const char* immediate, const char*** compiledFiles, size_t* compiledCount,int includeCount, const char** include, const char* compiler, const char* flags) {
+void compile(const char* source, const char* immediate, const char*** compiledFiles, size_t* compiledCount,int includeCount, const char** include, const char* compiler, const char* flags, int fileTypeCount, const char** fileTypes, const char* outType) {
 	Cstr imBuild = PATH(immediate);
-	if (!IS_DIR(imBuild)) {
+	if (!PATH_EXISTS(imBuild)) {
 		mkdir_p(imBuild);
 	}
 
 	FOREACH_FILE_IN_DIR(file, source, {
+		int isValidType = 0;
+		for (int i = 0; i < fileTypeCount; i++) {
+			if (ENDS_WITH(file, fileTypes[i])) {
+				isValidType = 1;
+				break;
+			}
+		}
+	
+		if (isValidType) {
 
-		if (ENDS_WITH(file,".c") || ENDS_WITH(file,".cpp")) {
-			compileCodeFile(source,file,imBuild,compiledFiles,compiledCount,includeCount, include,compiler,flags);
+			compileCodeFile(source,file,imBuild,compiledFiles,compiledCount,includeCount, include,compiler,flags, outType);
 		} else {
 			if (IS_DIR(PATH(source,file))) {
 				if (isValidDir(file)) {
-					compile(PATH(source, file), PATH(immediate, file), compiledFiles, compiledCount, includeCount, include, compiler,flags);
+					compile(PATH(source, file), PATH(immediate, file), compiledFiles, compiledCount, includeCount, include, compiler,flags, fileTypeCount, fileTypes, outType);
 				}
 			}
 		}
@@ -286,7 +352,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 	{
 		
 
-		if (!IS_DIR("bin")) {
+		if (!PATH_EXISTS("bin")) {
 			MKDIRS("bin");
 		}
 
@@ -309,7 +375,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 	case PROJECT_TYPE_LIB:
 	{
 
-		if (!IS_DIR("lib")) {
+		if (!PATH_EXISTS("lib")) {
 			MKDIRS("lib");
 		}
 		const char* output = CONCAT("lib", project.name, LIB_EXTENSION);
@@ -327,7 +393,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 	}
 	case PROJECT_TYPE_DLL:
 	{
-		if (!IS_DIR("lib")) {
+		if (!PATH_EXISTS("lib")) {
 			MKDIRS("lib");
 		}
 
@@ -348,6 +414,66 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 		CMD_ARR(args);
 		return output;
 	}
+	case PROJECT_TYPE_CUSTOM:
+	{
+		if (project.outDir[0]) {
+			for (int i = 0; i < strlen(project.outDir); i++) {
+				if (project.outDir[i] == '/') {
+					project.outDir[i] = PATH_SEP[0];
+				}
+			}
+			if (!PATH_EXISTS(project.outDir)) {
+				MKDIRS(project.outDir);
+			}
+			for (int i = 0; i < compiledCount; i++) {
+
+				const char* outFile = ((char*)compiledFiles[i]) + (strlen("build") + strlen(PATH_SEP) + strlen("tmp") + strlen(PATH_SEP) + strlen(project.name) + strlen(PATH_SEP));
+
+
+				char* nextPath = project.outDir;
+				char* curPath = (char*)outFile;
+				char* othPath = project.outDir;
+				while (1) {
+					char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(othPath));
+					nextPath = nextSep;
+
+					if (nextPath == 0) {
+						break;
+					}
+					if (memcmp(curPath, othPath, nextPath - othPath) == 0) {
+						curPath += (nextPath - othPath) + 1;
+						othPath += (nextPath - othPath) + 1;
+						nextPath += 1;
+					} else {
+						break;
+					}
+
+				}
+				const char* out = PATH(project.outDir, curPath);
+				nextPath = out;
+				while (1) {
+					char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(out));
+					nextPath = nextSep;
+
+					if (nextPath == 0) {
+						break;
+					}
+					char imDir[512] = { 0 };
+					memcpy(imDir, out, nextPath - out);
+					nextPath += 1;
+					imDir[511] = '\0';
+					if (!PATH_EXISTS(imDir) && IS_DIR(imDir)) {
+						MKDIRS(imDir);
+					}
+				}
+
+				copyFile(compiledFiles[i], out);
+			}
+		}
+
+		return "";
+	}
+
 		default:
 			break;
 	}
@@ -375,6 +501,8 @@ int parseType(char c, int* index, char* value, Project* project) {
 			project->type = PROJECT_TYPE_EXE;
 		} else if (strcmp(toUppercase(value), "DLL") == 0) {
 			project->type = PROJECT_TYPE_DLL;
+		}else if (strcmp(toUppercase(value), "CUSTOM") == 0){
+			project->type = PROJECT_TYPE_CUSTOM;
 		} else {
 			project->type = PROJECT_TYPE_UNKNOWN;
 		}
@@ -397,6 +525,31 @@ int parseCompiler(char c, int* index, char* value, Project* project) {
 	(*index)++;
 	return 0;
 }
+
+int parseOut(char c, int* index, char* value, Project* project) {
+	if (c == '\r' || c == '\n' || c == ' ') {
+		value[*index] = '\0';
+		memcpy(project->outDir, value, 512);
+		return 1;
+	}
+
+	value[*index] = c;
+	(*index)++;
+	return 0;
+}
+
+int parseOutType(char c, int* index, char* value, Project* project) {
+	if (c == '\r' || c == '\n' || c == ' ') {
+		value[*index] = '\0';
+		memcpy(project->outType, value, 64);
+		return 1;
+	}
+
+	value[*index] = c;
+	(*index)++;
+	return 0;
+}
+
 
 int parseExport(char c, int* index, char* value, Project* project) {
 	if (c == '\r' || c == '\n' || c == ' ') {
@@ -494,6 +647,44 @@ int parseSource(char c, int* index, char* value, Project* project) {
 		value[*index] = c;
 		(*index)++;
 	}
+	return 0;
+}
+
+int parseFileType(char c, int* index, char* value, Project* project) {
+	if (c == '\r' || c == '\n' || c == ' ') {
+		if (value[0] == '#') {
+#ifndef _WIN32
+			return 1;
+#else
+			value++;
+			(*index)--;
+#endif
+		}
+		if (value[0] == '^') {
+#ifndef _WIN32
+			value++;
+			(*index)--;
+#else
+			return 1;
+#endif
+		}
+		value[*index] = '\0';
+		char** data = realloc(project->fileTypes, sizeof(char*) * (project->fileTypeCount + 1));
+		if (!data) {
+			PANIC("out of mem");
+		}
+		project->fileTypes = data;
+
+		char* str = malloc(*index + 1);
+		memcpy(str, value, *index + 1);
+		project->fileTypes[project->fileTypeCount] = str;
+		project->fileTypeCount++;
+		return 1;
+	}
+
+	value[*index] = c;
+	(*index)++;
+
 	return 0;
 }
 
@@ -732,6 +923,15 @@ int parseProjectFile(char* buffer, Project* project) {
 			if (strcmp(toUppercase(property), "COMPILER") == 0) {
 				done = parseCompiler(c, &index, value, project);
 			}
+			if (strcmp(toUppercase(property), "OUTDIR") == 0) {
+				done = parseOut(c, &index, value, project);
+			}
+			if (strcmp(toUppercase(property), "OUTTYPE") == 0) {
+				done = parseOutType(c, &index, value, project);
+			}
+			if(strcmp(toUppercase(property), "FILES") == 0) {
+				done = parseFileType(c, &index, value, project);
+			}
 			if (strcmp(toUppercase(property), "FLAGS") == 0) {
 				done = parseFlags(c, &index, value, project);
 			}
@@ -743,9 +943,6 @@ int parseProjectFile(char* buffer, Project* project) {
 			}
 			if (strcmp(toUppercase(property), "LIB") == 0) {
 				done = parseLib(c, &index, value, project);
-			}
-			if (strcmp(toUppercase(property), "DLL") == 0) {
-				done = parseDll(c, &index, value, project);
 			}
 			if (strcmp(toUppercase(property), "INCLUDE") == 0) {
 				done = parseInclude(c, &index, value, project);
@@ -837,7 +1034,6 @@ int copyFile(const char* source, const char* destination) {
 	unsigned char* buffer = malloc(size);
 	fread(buffer, 1, size, fs);
 
-
 	ft = fopen(destination, "wb");
 	if (ft == NULL) {
 		PANIC("Error in Opening the file, %s\n", destination);
@@ -904,9 +1100,14 @@ void installProject(Project project, const char* projectName){
 	}
 }
 
+const char* defaultFileTypes[] = {
+	".c",
+	".cpp"
+};
+
 int buildProject(Project project, const char* projectName) {
 	const char* tmp = PATH("build", "tmp");
-	if (!IS_DIR(tmp)) {
+	if (!PATH_EXISTS(tmp)) {
 		MKDIRS(tmp);
 	}
 
@@ -916,7 +1117,7 @@ int buildProject(Project project, const char* projectName) {
 		const char* source = extractEnv(project.sources[i],project);
 
 		Cstr tempBuild = PATH(tmp, project.name);
-		if (!IS_DIR(tempBuild)) {
+		if (!PATH_EXISTS(tempBuild)) {
 			MKDIRS(tempBuild);
 		}
 		
@@ -930,10 +1131,24 @@ int buildProject(Project project, const char* projectName) {
 			project.libdir[i] = CONCAT("-L",extractEnv(project.libdir[i],project));
 		}
 
-		compile(source, PATH(tempBuild, source), &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags);
+		if (project.fileTypeCount == 0) {
+			
+			project.fileTypes = defaultFileTypes;
+			project.fileTypeCount = sizeof(defaultFileTypes) / sizeof(const char*);
+		}
+
+		if (project.outType[0] == 0) {
+			project.outType[0] = '.';
+			project.outType[1] = 'o';
+			project.outType[2] = '\0';
+		}
+
+		const char* outFolder = project.sourceCount == 1 ? tempBuild : PATH(tempBuild, source);
+
+		compile(source, outFolder, &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags, project.fileTypeCount, project.fileTypes, project.outType);
 		const char* output = linker(compiledFiles, compiledCount, project);
 
-		if (!IS_DIR(projectName)) {
+		if (!PATH_EXISTS(projectName)) {
 			MKDIRS(projectName);
 		}
 		for (int i = 0; i < project.exportCount; i++) {
@@ -953,25 +1168,46 @@ int buildProject(Project project, const char* projectName) {
 }
 
 void cleanProject(Project project, const char* projectName) {
-	RM(PATH("build", "tmp", project.name));
-	RM(projectName);
+	if (PATH_EXISTS(PATH("build", "tmp", project.name))) {
+		RM(PATH("build", "tmp", project.name));
+	}
+	if (PATH_EXISTS(projectName)) {
+		RM(projectName);
+	}
+	
 	switch (project.type) {
 	case PROJECT_TYPE_EXE:
-		RM(PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
+		if (PATH_EXISTS(PATH("bin", CONCAT(project.name, EXE_EXTENSION)))) {
+			RM(PATH("bin", CONCAT(project.name, EXE_EXTENSION)));
+		}
 		break;
 	case PROJECT_TYPE_LIB:
-		RM(PATH("lib", CONCAT(LIB_PREFIX,project.name, LIB_EXTENSION)));
+		if (PATH_EXISTS(PATH("lib",CONCAT(LIB_PREFIX, project.name, LIB_EXTENSION)))) {
+			RM(PATH("lib", CONCAT(LIB_PREFIX, project.name, LIB_EXTENSION)));
+		}
 		break;
 	case PROJECT_TYPE_DLL:
-		RM(PATH("lib", CONCAT(LIB_PREFIX,project.name,DLL_EXTENSION)));
+		if (PATH_EXISTS(PATH("lib",CONCAT(LIB_PREFIX, project.name, DLL_EXTENSION)))) {
+			RM(PATH("lib", CONCAT(LIB_PREFIX, project.name, DLL_EXTENSION)));
+		}
 		break;
+	case PROJECT_TYPE_CUSTOM:
+		for (int i = 0; i < strlen(project.outDir); i++) {
+			if (project.outDir[i] == '/') {
+				project.outDir[i] = PATH_SEP[0];
+			}
+		}
+		if (PATH_EXISTS(project.outDir)) {
+			RM(project.outDir);
+		}
+		
 		default:
 		break;
 	}
 }
 
 void cleanWorkspace() {
-	if (IS_DIR(PATH("build", "tmp"))) {
+	if (PATH_EXISTS(PATH("build", "tmp"))) {
 		FOREACH_FILE_IN_DIR(file, PATH("build","tmp"), {
 			if (isValidDir(file)) {
 				RM(PATH("build","tmp", file));

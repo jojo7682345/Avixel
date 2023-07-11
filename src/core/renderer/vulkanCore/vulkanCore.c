@@ -1,9 +1,13 @@
 #include "../renderer.h"
+#include <shader.h>
+
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
-#include <string.h>
 
-#define MAX_FRAMES_IN_FLIGHT  2
+#include <string.h>
+#include <stdio.h>
+
+#define MAX_FRAMES_IN_FLIGHT 2
 
 const char* const requiredDefaultExtensions[] = {
 	VK_EXT_DEBUG_UTILS_EXTENSION_NAME,
@@ -43,7 +47,14 @@ typedef struct SwapChainSupportDetails {
 	VkPresentModeKHR* presentModes;
 }SwapChainSupportDetails;
 
+typedef struct Pipeline_T {
+	VkPipelineLayout layout;
+	VkPipeline pipeline;
+}Pipeline_T;
+
 typedef struct RenderDevice_T {
+	Window window;
+
 	RenderInstance instance;
 
 	VkPhysicalDevice physicalDevice;
@@ -52,6 +63,9 @@ typedef struct RenderDevice_T {
 	QueueFamilyIndices queueFamilyIndices;
 	VkQueue graphicsQueue;
 	VkQueue presentQueue;
+
+	Pipeline_T renderPipeline;
+	Pipeline_T fontPipeline;
 } RenderDevice_T;
 
 typedef struct Frame {
@@ -87,6 +101,8 @@ typedef struct Window_T {
 
 	uint frameCount;
 	Frame* frames;
+
+	VkRenderPass renderPass;
 } Window_T;
 
 typedef struct DisplaySurface_T {
@@ -165,8 +181,8 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 	glfwWindowHint(GLFW_RESIZABLE, windowCreateInfo.properties.resizable ? GLFW_TRUE : GLFW_FALSE);
 	(*window)->window = glfwCreateWindow(windowCreateInfo.properties.size.width, windowCreateInfo.properties.size.height, windowCreateInfo.properties.title, fullscreen, NULL);
-	if((*window)->window==NULL){
-		avAssert(AV_CREATION_ERROR,0, "Failed to create the window");
+	if ((*window)->window == NULL) {
+		avAssert(AV_CREATION_ERROR, 0, "Failed to create the window");
 	}
 	avAssert(0, 0, "created window");
 
@@ -178,12 +194,12 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 
 	glfwShowWindow((*window)->window);
 
-	glfwSetWindowCloseCallback((*window)->window, windowCreateInfo.onWindowDisconnect);
+	glfwSetWindowCloseCallback((*window)->window, (GLFWwindowclosefun)windowCreateInfo.onWindowDisconnect);
 	if (windowCreateInfo.properties.resizable) {
 		if (!windowCreateInfo.onWindowResize) {
 			avAssert(AV_UNSPECIFIED_CALLBACK, AV_SUCCESS, "window is resizable, but no resize callback is specified");
 		} else {
-			glfwSetWindowSizeCallback((*window)->window, windowCreateInfo.onWindowResize);
+			glfwSetWindowSizeCallback((*window)->window, (GLFWwindowsizefun)windowCreateInfo.onWindowResize);
 		}
 	}
 
@@ -591,9 +607,12 @@ VkExtent2D chooseSwapExtent(const VkSurfaceCapabilitiesKHR capabilities, Window 
 	}
 }
 
-void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevice) {
+void renderDeviceCreate(AvInstance instance, RenderDeviceCreateInfo createInfo, RenderDevice* pDevice) {
+	Window window = createInfo.window;
+
 	*pDevice = avAllocate(sizeof(RenderDevice_T), 1, "allocating render instance");
 	(*pDevice)->instance = instance->renderInstance;
+	(*pDevice)->window = window;
 
 	// physical device selection
 	uint32 deviceCount = 0;
@@ -659,23 +678,23 @@ void renderDeviceCreate(AvInstance instance, Window window, RenderDevice* pDevic
 
 	VkPhysicalDeviceFeatures deviceFeatures = { 0 };
 
-	VkDeviceCreateInfo createInfo = { 0 };
-	createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-	createInfo.pQueueCreateInfos = queueCreateInfos;
-	createInfo.queueCreateInfoCount = queueCount;
-	createInfo.pEnabledFeatures = &deviceFeatures;
+	VkDeviceCreateInfo deviceCreateInfo = { 0 };
+	deviceCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	deviceCreateInfo.pQueueCreateInfos = queueCreateInfos;
+	deviceCreateInfo.queueCreateInfoCount = queueCount;
+	deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 
-	createInfo.enabledExtensionCount = deviceExtensionCount;
-	createInfo.ppEnabledExtensionNames = deviceExtensions;
+	deviceCreateInfo.enabledExtensionCount = deviceExtensionCount;
+	deviceCreateInfo.ppEnabledExtensionNames = deviceExtensions;
 
 	if (instance->renderInstance->debugMessenger) {
-		createInfo.enabledLayerCount = validationLayerCount;
-		createInfo.ppEnabledLayerNames = validationLayers;
+		deviceCreateInfo.enabledLayerCount = validationLayerCount;
+		deviceCreateInfo.ppEnabledLayerNames = validationLayers;
 	} else {
-		createInfo.enabledLayerCount = 0;
+		deviceCreateInfo.enabledLayerCount = 0;
 	}
 	VkResult result;
-	result = vkCreateDevice((*pDevice)->physicalDevice, &createInfo, nullptr, &(*pDevice)->device);
+	result = vkCreateDevice((*pDevice)->physicalDevice, &deviceCreateInfo, nullptr, &(*pDevice)->device);
 	if (result != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating the vulkan logical device");
 	}
@@ -692,7 +711,7 @@ typedef struct FrameCreateInfo {
 } FrameCreateInfo;
 
 void frameCreateResources(RenderDevice device, Window window, uint frameIndex, FrameCreateInfo createInfo, Frame* frame) {
-	
+
 
 	frame->image = createInfo.images[frameIndex];
 	frame->extent = &window->frameExtent;
@@ -727,7 +746,9 @@ void frameDestroyResources(RenderDevice device, Window window, Frame frame) {
 }
 
 
-void renderDeviceCreateResources(RenderDevice device, Window window) {
+void renderDeviceCreateResources(RenderDevice device) {
+	Window window = device->window;
+
 	// swapchain
 	SwapChainSupportDetails swapChainSupport = querySwapChainSupport(device->physicalDevice, window);
 	VkSurfaceFormatKHR surfaceFormat = chooseSwapSurfaceFormat(swapChainSupport.formats, swapChainSupport.formatCount);
@@ -809,10 +830,128 @@ void renderDeviceCreateResources(RenderDevice device, Window window) {
 
 	avFree(commandBuffers);
 	avFree(swapChainImages);
+
+	// renderpass 
+	VkAttachmentDescription colorAttachmentDescription = { 0 };
+	colorAttachmentDescription.format = window->frameFormat;
+	colorAttachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+	colorAttachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+	colorAttachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+	colorAttachmentDescription.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+	colorAttachmentDescription.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+	colorAttachmentDescription.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	colorAttachmentDescription.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+	VkAttachmentReference colorAttachmentReference = { 0 };
+	colorAttachmentReference.attachment = 0;
+	colorAttachmentReference.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+
+	VkSubpassDescription subpass = { 0 };
+	subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+	subpass.colorAttachmentCount = 1;
+	subpass.pColorAttachments = &colorAttachmentReference;
+
+	VkRenderPassCreateInfo renderPassInfo = { 0 };
+	renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+	renderPassInfo.pNext = nullptr;
+	renderPassInfo.flags = 0;
+	renderPassInfo.attachmentCount = 1;
+	renderPassInfo.pAttachments = &colorAttachmentDescription;
+	renderPassInfo.subpassCount = 1;
+	renderPassInfo.pSubpasses = &subpass;
+	renderPassInfo.dependencyCount = 0;
+	renderPassInfo.pDependencies = nullptr;
+
+	if (vkCreateRenderPass(device->device, &renderPassInfo, nullptr, &(window->renderPass)) != VK_SUCCESS) {
+		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating renderpass");
+	}
+	avAssert(AV_SUCCESS, AV_SUCCESS, "created renderpass");
+}
+
+void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, PipelineCreateInfo* createInfos) {
+	
+	Window window = device->window;
+
+	VkPipelineInputAssemblyStateCreateInfo inputAssembly = { 0 };
+	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+	inputAssembly.primitiveRestartEnable = VK_FALSE;
+
+	VkViewport viewport = { 0 };
+	viewport.x = 0.0f;
+	viewport.y = 0.0f;
+	viewport.width = (float)window->frameExtent.width;
+	viewport.height = (float)window->frameExtent.height;
+
+	VkRect2D scissor = { 0 };
+	scissor.offset.x = 0;
+	scissor.offset.y = 0;
+	scissor.extent = window->frameExtent;
+
+	VkPipelineViewportStateCreateInfo viewportState = { 0 };
+	viewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+	viewportState.viewportCount = 1;
+	viewportState.pViewports = &viewport;
+	viewportState.scissorCount = 1;
+	viewportState.pScissors = &scissor;
+
+	VkPipelineRasterizationStateCreateInfo rasterizer = { 0 };
+	rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+	rasterizer.depthClampEnable = VK_FALSE;
+	rasterizer.rasterizerDiscardEnable = VK_FALSE;
+	rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
+	rasterizer.lineWidth = 1.0f;
+	rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
+	rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+	rasterizer.depthBiasEnable = VK_FALSE;
+	rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+	rasterizer.depthBiasClamp = 0.0f; // Optional
+	rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
+
+	VkPipelineMultisampleStateCreateInfo multisampling = { 0 };
+	multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+	multisampling.sampleShadingEnable = VK_FALSE;
+	multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
+	multisampling.minSampleShading = 1.0f; // Optional
+	multisampling.pSampleMask = nullptr; // Optional
+	multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+	multisampling.alphaToOneEnable = VK_FALSE; // Optional
+
+	VkPipelineColorBlendAttachmentState colorBlendAttachment = { 0 };
+	colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+	colorBlendAttachment.blendEnable = VK_TRUE;
+	colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+	colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+	colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+	colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+	colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+	colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+
+	VkPipelineColorBlendStateCreateInfo colorBlending = { 0 };
+	colorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+	colorBlending.logicOpEnable = VK_FALSE;
+	colorBlending.logicOp = VK_LOGIC_OP_COPY; // Optional
+	colorBlending.attachmentCount = 1;
+	colorBlending.pAttachments = &colorBlendAttachment;
+	colorBlending.blendConstants[0] = 0.0f; // Optional
+	colorBlending.blendConstants[1] = 0.0f; // Optional
+	colorBlending.blendConstants[2] = 0.0f; // Optional
+	colorBlending.blendConstants[3] = 0.0f; // Optional
+	
+
 }
 
 
-void renderDeviceDestroyResources(RenderDevice device, Window window) {
+void renderDeviceDestroyPipelines(RenderDevice device) {
+
+
+
+}
+
+void renderDeviceDestroyResources(RenderDevice device) {
+	Window window = device->window;
+
+	vkDestroyRenderPass(device->device, window->renderPass, nullptr);
 
 	for (uint i = 0; i < window->frameCount; i++) {
 		frameDestroyResources(device, window, window->frames[i]);

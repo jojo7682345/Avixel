@@ -1,18 +1,54 @@
+shaderExport {
+	type: EXE
+	compiler: gcc
+	source: [
+		tools/shaderExport/src
+	]
+	files: [
+		.c
+	]
+}
+compileShaders {
+	type: CUSTOM
+	outType: .spv
+	compiler: glslc
+	source: [
+		shaders/src
+	]
+	files: [
+		.vert
+		.frag
+		.comp
+	]
+}
+exportShaders {
+	type: CUSTOM
+	outDir: shaders/include
+	outType: .h
+	compiler: bin/shaderExport
+	source: [
+		build/tmp/compileShaders
+	]
+	files: [
+		.spv
+	]
+}
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -std=c11 -ggdb -fPIC
+	flags: -std=c11 -ggdb -fPIC -D DEBUG
 	source: [
 		src
 	]
 	include: [
 		include
-		#$(VULKAN_SDK)\Include
-		#$(GLFW_SDK)\include
+		shaders/include
+		#$(VULKAN_SDK)/Include
+		#$(GLFW_SDK)/include
 	]
 	libdir: [
-		#$(GLFW_SDK)\lib-mingw-w64
-		#$(VULKAN_SDK)\Lib
+		#$(GLFW_SDK)/lib-mingw-w64
+		#$(VULKAN_SDK)/Lib
 	]
 	lib: [
 		^glfw
