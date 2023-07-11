@@ -71,8 +71,8 @@ void avAssert_(AvResult result, AvResult valid, AV_LOCATION_ARGS, const char* ms
 #define avLog(result, message) avLog_(result,AV_LOCATION_PARAMS, message)
 #define avAssert(result, valid, message) avAssert_(result,valid,AV_LOCATION_PARAMS,message)
 #else 
-#define avLog(result,message) (result==0)
-#define avAssert(result,valid,message) (result==0)
+#define avLog(result,message) (result)
+#define avAssert(result,valid,message) (result)
 #endif
 
 typedef struct AvLogSettings {
