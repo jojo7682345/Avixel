@@ -298,7 +298,9 @@ void compileCodeFile(const char* source, char* file, const char* imBuild, const 
 	
 	Cstr_Array args = { 0 };
 	args = cstr_array_append(args, compiler);
-	args = cstr_array_concat(args, splitString(flags, ' '));
+	if (flags[0] != '\0') {
+		args = cstr_array_concat(args, splitString(flags, ' '));
+	}
 	Cstr_Array includes = { .count = includeCount,.elems = include };
 	args = cstr_array_concat(args, includes);
 	args = cstr_array_append(args, "-MD");
@@ -360,7 +362,9 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 		Cstr_Array args = {0};
 		args = cstr_array_append(args, project.compiler);
-		args = cstr_array_concat(args, splitString(project.flags,' '));
+		if (project.flags[0] == '\0') {
+			args = cstr_array_concat(args, splitString(project.flags, ' '));
+		}
 		args = cstr_array_append(args, "-o");
 		args = cstr_array_append(args, PATH("bin", output));
 		Cstr_Array objectFiles = {.count=compiledCount,.elems=compiledFiles};
