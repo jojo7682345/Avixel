@@ -50,8 +50,12 @@ A GUI library in written in C using Vulkan and GLFW
 ## Building
 clone the repository and run the following commands
 ### Required dependencies
-- vulkan >= 1.0
+#### run depenencies
+- vulkan drivers (>= 1.0)
+#### build dependencies
 - glfw >= 3.3.8 _(might work with older versions)_
+- shaderc
+- vulkanSDK( aka: vulkan-dev ) (>= 1.0)
 ### Windows
 ```shell
 gcc build/builder.c -o builder
