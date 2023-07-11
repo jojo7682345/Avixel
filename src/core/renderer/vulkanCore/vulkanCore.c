@@ -1,5 +1,5 @@
 #include "../renderer.h"
-//#include <basic_pipeline/basic_frag.h>
+#include "vulkanShaders.h"
 
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -867,6 +867,8 @@ void renderDeviceCreateResources(RenderDevice device) {
 	}
 	avAssert(AV_SUCCESS, AV_SUCCESS, "created renderpass");
 }
+
+
 
 void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, PipelineCreateInfo* createInfos) {
 	

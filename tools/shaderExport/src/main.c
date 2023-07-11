@@ -347,7 +347,7 @@ int main(int argC, char* argV[]) {
 
 	
 
-	while (fgets(fileBuffer, 2048, bundle) != NULL) {
+	while (fgets(fileBuffer, 1024, bundle) != NULL) {
 		fileBuffer[strcspn(fileBuffer, "\r\n")] = 0;
 
 		char dirBuffer[2048] = { 0 };
