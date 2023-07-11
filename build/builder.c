@@ -1221,12 +1221,18 @@ void cleanWorkspace() {
 			RM(PATH("bin", file));
 		}
 		});
+	if (PATH_EXISTS("bin")) {
+		RM("bin");
+	}
 	FOREACH_FILE_IN_DIR(file, "lib", {
 		if (isValidDir(file)) {
 			RM(PATH("lib", file));
 		}
 
 		});
+	if (PATH_EXISTS("lib")) {
+		RM("lib");
+	}
 }
 
 int processProject(const char* projectName, OperationType op) {
