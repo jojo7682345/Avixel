@@ -23,7 +23,7 @@ builder.exe
 !.vs/*.vs.json
 .obsidian
 
-!CppProperties.json
+CppProperties.json
 
 #project export files
 AvGraphicsUtilities
