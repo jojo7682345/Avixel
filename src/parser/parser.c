@@ -17,21 +17,9 @@ AvResult parseFile(const char* buffer, uint64 size, const char* fileName) {
 
 	// TODO: preprocessor
 
-
-<<<<<<< HEAD
 	dynamicArrayDestroy(syntaxTree);
 	avFree(tokens);
-=======
-AvResult parseFile(const char* buffer, uint64 size) {
-	Token* tokens = nullptr;
-	uint tokenCount = 0;
-	avAssert(tokenize(buffer, size, &tokens, &tokenCount), AV_SUCCESS, "tokenizing");
-	//printTokens(tokens);
-	testTokens(buffer, size, tokens);
-	// TODO: parse syntax
-	// TODO: preprocessor
-	freeTokens(tokens);
->>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
+
 
 	return AV_SUCCESS;
 }

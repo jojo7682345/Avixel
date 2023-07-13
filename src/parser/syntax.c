@@ -21,7 +21,7 @@ void syntaxError(TokenType expectedType, Token token) {
 		tokenTypeAsString(token.type)
 	);
 
-	avAssert_(AV_INVALID_SYNTAX, 0, token.location.lineNumber, token.location.file, "parsing", msgOut);
+	avAssert_(AV_INVALID_SYNTAX, 0, token.location.lineNumber, token.location.file, "parsing", AV_LOG_CATEGORY, msgOut);
 }
 
 bool getSyntax_(uint tokenCount, Token* tokens, uint* index, ...) {

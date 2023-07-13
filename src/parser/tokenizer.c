@@ -2,6 +2,7 @@
 #include "../core/core.h"
 
 #include <memory.h>
+#include <stdio.h>
 
 typedef struct TokenLL {
 	Token token;

@@ -15,16 +15,16 @@ void* avAllocate_(uint typeSize, uint count, AV_LOCATION_ARGS, AV_CATEGORY_ARGS,
 	return data;
 }
 
-void* avReallocate_(void* data, uint typeSize, uint count, AV_LOCATION_ARGS, const char* errorMsg) {
+void* avReallocate_(void* data, uint typeSize, uint count, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* errorMsg) {
 	void* ptr = realloc(data, ((size_t)typeSize * (size_t)count));
 	if (ptr == 0) {
-		avAssert_(AV_MEMORY_ERROR, AV_SUCCESS, line, file, func, errorMsg);
+		avAssert_(AV_MEMORY_ERROR, AV_SUCCESS, line, file, func, category, errorMsg);
 		return nullptr;
 	}
 	return ptr;
 }
 
-void avFree_(void* data,AV_LOCATION_ARGS) {
+void avFree_(void* data,AV_LOCATION_ARGS, AV_CATEGORY_ARGS) {
 	free(data);
 }
 

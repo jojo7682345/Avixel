@@ -88,8 +88,8 @@
       ]
     },
     {
-      "taskLabel": "task-AvGraphicsUtilitiesTest",
-      "appliesTo": "AvGraphicsUtilities/AvGraphicsUtilitiesTest.exe",
+      "taskLabel": "task-avixelTest",
+      "appliesTo": "avixel/avixelTest.exe",
       "type": "launch"
     }
   ]
