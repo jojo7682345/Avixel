@@ -58,7 +58,7 @@ avixelTest {
 		test/assets
 		$(OUTPUT)
 	]
-	flags: -Wall -ggdb
+	flags: -Wall -ggdb -fPIC
 	source: [
 		test/src
 	]
