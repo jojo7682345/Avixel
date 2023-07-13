@@ -1,4 +1,5 @@
 #pragma once
+#define AV_LOG_CATEGORY "AvGraphicsUtilities"
 #include <AvGraphicsUtilities/AvGraphicsUtilities.h>
 #include "util/util.h"
 #include "logging/logging.h"

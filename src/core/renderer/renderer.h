@@ -11,6 +11,11 @@ typedef enum DisplayType {
 	DISPLAY_TYPE_EMBEDDED
 } DisplayType;
 
+typedef enum RendererType {
+	RENDERER_TYPE_VULKAN,
+	RENDERER_TYPE_CUSTOM,
+}RendererType;
+
 typedef struct WindowSizeProperties{
     uint width;
     uint height;
@@ -29,6 +34,8 @@ typedef struct WindowCreateInfo {
 	void (*onWindowResize)(void*, int, int);
 	void (*onWindowDisconnect)(void*);
 } WindowCreateInfo;
+
+RendererType getRendererType();
 
 // surface
 AvResult displaySurfaceInit(AvInstance instance);

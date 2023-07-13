@@ -7,6 +7,9 @@
 #include <string.h>
 #include <stdio.h>
 
+#undef AV_LOG_CATEGORY
+#define AV_LOG_CATEGORY "AvVulkanRenderer"
+
 #define MAX_FRAMES_IN_FLIGHT 2
 
 const char* const requiredDefaultExtensions[] = {
@@ -111,6 +114,17 @@ typedef struct DisplaySurface_T {
 	DisplayType type;
 } DisplaySurface_T;
 
+void checkCreation_(VkResult result, const char* msg, AV_LOCATION_ARGS, AV_CATEGORY_ARGS) {
+	if (result != VK_SUCCESS) {
+		avAssert_(AV_CREATION_ERROR, AV_SUCCESS, line, file, func, category, msg);
+	}
+}
+#define checkCreation(result, msg) checkCreation_(result,msg, AV_LOCATION_PARAMS, AV_LOG_CATEGORY)
+
+RendererType getRendererType() {
+	return RENDERER_TYPE_VULKAN;
+}
+
 AvResult displaySurfaceInit(AvInstance instance) {
 
 	glfwInit();
@@ -131,9 +145,9 @@ AvResult displaySurfaceInit(AvInstance instance) {
 
 	char monitorSize[32];
 	sprintf(monitorSize, "display surface size %ix%i", mode->width, mode->height);
-	avLog(AV_INFO, monitorSize);
+	avLog(AV_DEBUG_INFO, monitorSize);
 
-	avAssert(0, AV_SUCCESS, "initialized display surface");
+	avLog(AV_DEBUG_CREATE, "initialized display surface");
 
 	return AV_SUCCESS;
 }
@@ -155,7 +169,7 @@ void displaySurfaceDeinit(AvInstance instance) {
 
 	avFree(instance->displaySurface);
 
-	avAssert(0, AV_SUCCESS, "deinitialized display surface");
+	avLog(AV_DEBUG_DESTROY, "deinitialized display surface");
 }
 
 const char** displaySurfaceEnumerateExtensions(AvInstance instance, uint* count) {
@@ -184,7 +198,7 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 	if ((*window)->window == NULL) {
 		avAssert(AV_CREATION_ERROR, 0, "Failed to create the window");
 	}
-	avAssert(0, 0, "created window");
+	avLog(AV_DEBUG_CREATE, "created window");
 
 	if (windowCreateInfo.properties.size.x != -1 && windowCreateInfo.properties.size.y != -1) {
 		glfwSetWindowPos((*window)->window, windowCreateInfo.properties.size.x, windowCreateInfo.properties.size.y);
@@ -222,7 +236,7 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 		avAssert(AV_NO_SUPPORT, AV_SUCCESS, "failed to create window surface");
 	}
 
-	avAssert(0, 0, "created window surface");
+	avLog(AV_DEBUG_CREATE, "created window surface");
 	return AV_SUCCESS;
 }
 
@@ -274,18 +288,18 @@ static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(
 	const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData,
 	void* pUserData) {
 
-	AvLogLevel level = { 0 };
+	AvValidationLevel level = { 0 };
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT) {
-		level = AV_LOG_LEVEL_ALL;
+		level = AV_VALIDATION_LEVEL_VERBOSE;
 	}
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_INFO_BIT_EXT) {
-		level = AV_LOG_LEVEL_INFO;
+		level = AV_VALIDATION_LEVEL_INFO;
 	}
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
-		level = AV_LOG_LEVEL_WARNING;
+		level = AV_VALIDATION_LEVEL_WARNINGS_AND_ERRORS;
 	}
 	if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT) {
-		level = AV_LOG_LEVEL_ERROR;
+		level = AV_VALIDATION_LEVEL_ERRORS;
 	}
 
 	ValidationMessageType type = { 0 };
@@ -355,7 +369,7 @@ void renderInstanceCreate(AvInstance instance, RenderInstanceCreateInfo info) {
 	if (result != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating the vulkan instance");
 	}
-	avAssert(0, AV_SUCCESS, "created the vulkan instance");
+	avLog(AV_DEBUG_CREATE, "created the vulkan instance");
 	avFree(requiredExtensions);
 
 	// debug messenger setup
@@ -367,7 +381,7 @@ void renderInstanceCreate(AvInstance instance, RenderInstanceCreateInfo info) {
 		if (result != VK_SUCCESS) {
 			avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating the validation logger");
 		}
-		avAssert(0, AV_SUCCESS, "created the validation logger");
+		avLog(AV_DEBUG_CREATE, "created the validation logger");
 	}
 }
 
@@ -375,17 +389,17 @@ void renderInstanceDestroy(AvInstance instance) {
 
 	if (instance->window) {
 		displaySurfaceDestroyWindow(instance, instance->window);
-		avAssert(0, AV_SUCCESS, "destroyed primary window");
+		avLog(AV_DEBUG_DESTROY, "destroyed primary window");
 	}
 
 	if (instance->renderInstance->debugMessenger) {
 		destroyDebugUtilsMessengerEXT(instance->renderInstance->instance, *(instance->renderInstance->debugMessenger), NULL);
 		avFree(instance->renderInstance->debugMessenger);
-		avAssert(0, AV_SUCCESS, "destroyed validation logger");
+		avLog(AV_DEBUG_DESTROY, "destroyed validation logger");
 	}
 
 	vkDestroyInstance(instance->renderInstance->instance, NULL);
-	avAssert(0, AV_SUCCESS, "destroyed vulkan instance");
+	avLog(AV_DEBUG_DESTROY, "destroyed vulkan instance");
 
 	avFree(instance->renderInstance);
 }
@@ -634,7 +648,7 @@ void renderDeviceCreate(AvInstance instance, RenderDeviceCreateInfo createInfo, 
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("found device ") / sizeof(char))] = { 0 };
 		sprintf(msg, "found device %s", deviceName);
-		avLog(AV_INFO, msg);
+		avLog(AV_DEBUG_INFO, msg);
 
 		uint score = scoreDevice(device, window);
 		if (score > bestScore) {
@@ -653,9 +667,9 @@ void renderDeviceCreate(AvInstance instance, RenderDeviceCreateInfo createInfo, 
 		const char* deviceName = deviceProperties.deviceName;
 		char msg[256 + (sizeof("selected device ") / sizeof(char))] = { 0 };
 		sprintf(msg, "selected device  %s", deviceName);
-		avLog(AV_INFO, msg);
+		avLog(AV_DEBUG_INFO, msg);
 	}
-	avAssert(0, 0, "found physical device");
+	avLog(AV_DEBUG_SUCCESS, "found physical device");
 
 	QueueFamilyIndices indices = findQueueFamilies((*pDevice)->physicalDevice, window);
 	(*pDevice)->queueFamilyIndices = indices;
@@ -698,7 +712,7 @@ void renderDeviceCreate(AvInstance instance, RenderDeviceCreateInfo createInfo, 
 	if (result != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating the vulkan logical device");
 	}
-	avAssert(0, 0, "created render device");
+	avLog(AV_DEBUG_CREATE, "created render device");
 
 	vkGetDeviceQueue((*pDevice)->device, indices.graphicsFamily, 0, &(*pDevice)->graphicsQueue);
 	vkGetDeviceQueue((*pDevice)->device, indices.presentFamily, 0, &(*pDevice)->presentQueue);
@@ -736,13 +750,13 @@ void frameCreateResources(RenderDevice device, Window window, uint frameIndex, F
 	if (vkCreateImageView(device->device, &imageViewInfo, nullptr, &frame->imageView) != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "failed to create view in to the swapchain image");
 	}
-	avAssert(0, 0, "created image view in frame");
+	avLog(AV_DEBUG_CREATE, "created image view in frame");
 }
 
 void frameDestroyResources(RenderDevice device, Window window, Frame frame) {
 
 	vkDestroyImageView(device->device, frame.imageView, nullptr);
-	avAssert(0, 0, "destroyed image view in frame");
+	avLog(AV_DEBUG_DESTROY, "destroyed image view in frame");
 }
 
 
@@ -789,7 +803,7 @@ void renderDeviceCreateResources(RenderDevice device) {
 	if (result != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, 0, "creating swapchain");
 	}
-	avAssert(0, 0, "created swapchain");
+	avLog(AV_DEBUG_CREATE, "created swapchain");
 
 	window->frameExtent = extent;
 	window->frameFormat = surfaceFormat.format;
@@ -803,7 +817,7 @@ void renderDeviceCreateResources(RenderDevice device) {
 	if (vkCreateCommandPool(device->device, &poolInfo, nullptr, &window->commandPool) != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, 0, "failed to create command pool");
 	}
-	avAssert(0, 0, "created command pool");
+	avLog(AV_DEBUG_CREATE, "created command pool");
 
 	VkCommandBufferAllocateInfo allocInfo = { 0 };
 	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -814,7 +828,7 @@ void renderDeviceCreateResources(RenderDevice device) {
 	if (vkAllocateCommandBuffers(device->device, &allocInfo, commandBuffers) != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, 0, "failed to allocate commandbuffers");
 	}
-	avAssert(0, 0, "allocated command commandbuffers");
+	avLog(AV_DEBUG_CREATE, "allocated command commandbuffers");
 
 	vkGetSwapchainImagesKHR(device->device, window->swapchain, &imageCount, nullptr);
 	VkImage* swapChainImages = avAllocate(sizeof(VkImage), imageCount, "allocating for swapchain image enumeration");
@@ -865,14 +879,63 @@ void renderDeviceCreateResources(RenderDevice device) {
 	if (vkCreateRenderPass(device->device, &renderPassInfo, nullptr, &(window->renderPass)) != VK_SUCCESS) {
 		avAssert(AV_CREATION_ERROR, AV_SUCCESS, "creating renderpass");
 	}
-	avAssert(AV_SUCCESS, AV_SUCCESS, "created renderpass");
+	avLog(AV_DEBUG_CREATE, "created renderpass");
+}
+
+VkShaderModule createShaderModule(const size_t codeSize, const char* codeText, RenderDevice device, const char* msg) {
+	VkShaderModuleCreateInfo shaderModuleCreateInfo = { 0 };
+	shaderModuleCreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+	shaderModuleCreateInfo.codeSize = codeSize;
+	shaderModuleCreateInfo.pCode = (uint*) codeText;
+	shaderModuleCreateInfo.flags = 0;
+	shaderModuleCreateInfo.pNext = nullptr;
+
+	VkShaderModule shaderModule;
+
+	if (vkCreateShaderModule(device->device, &shaderModuleCreateInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+		avAssert(AV_CREATION_ERROR, AV_SUCCESS, msg);
+	}
+	avLog(AV_DEBUG_CREATE, "created shader module");
+
+	return shaderModule;
 }
 
 
-
 void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, PipelineCreateInfo* createInfos) {
-	
+
 	Window window = device->window;
+
+
+	VkPipelineLayoutCreateInfo renderPipelineLayoutCreateInfo = { 0 };
+	renderPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	renderPipelineLayoutCreateInfo.setLayoutCount = 0; // Optional
+	renderPipelineLayoutCreateInfo.pSetLayouts = nullptr; // Optional
+	renderPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // Optional
+	renderPipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // Optional
+
+	VkPipelineLayoutCreateInfo fontPipelineLayoutCreateInfo = { 0 };
+	fontPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+	fontPipelineLayoutCreateInfo.setLayoutCount = 0; // Optional
+	fontPipelineLayoutCreateInfo.pSetLayouts = nullptr; // Optional
+	fontPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // Optional
+	fontPipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // Optional
+
+	checkCreation(
+		vkCreatePipelineLayout(device->device, &renderPipelineLayoutCreateInfo, nullptr, &device->renderPipeline.layout),
+		"creating render pipeline layout"
+	);
+
+	checkCreation(
+		vkCreatePipelineLayout(device->device, &fontPipelineLayoutCreateInfo, nullptr, &device->fontPipeline.layout),
+		"creating font pipeline layout"
+	);
+
+	VkPipelineVertexInputStateCreateInfo vertexInputInfo = { 0 };
+	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
+	vertexInputInfo.vertexBindingDescriptionCount = 0;
+	vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
+	vertexInputInfo.vertexAttributeDescriptionCount = 0;
+	vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = { 0 };
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -939,17 +1002,122 @@ void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, Pipe
 	colorBlending.blendConstants[1] = 0.0f; // Optional
 	colorBlending.blendConstants[2] = 0.0f; // Optional
 	colorBlending.blendConstants[3] = 0.0f; // Optional
-	
 
-	// create basic pipeline
-	
+	VkDynamicState dynamicStates[] = {
+			VK_DYNAMIC_STATE_VIEWPORT,
+			VK_DYNAMIC_STATE_SCISSOR
+	};
+	VkPipelineDynamicStateCreateInfo dynamicState = { 0 };
+	dynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+	dynamicState.dynamicStateCount = sizeof(dynamicStates) / sizeof(VkDynamicState);
+	dynamicState.pDynamicStates = dynamicStates;
 
+
+	// creating shader modules
+	VkShaderModule fontShaderVertModule = createShaderModule(font_shader_vert_size, font_shader_vert_data, device, "creating font vertex shader");
+	VkShaderModule fontShaderFragModule = createShaderModule(font_shader_frag_size, font_shader_frag_data, device, "creating font fragment shader");
+	VkShaderModule basicShaderVertModule = createShaderModule(basic_shader_vert_size, basic_shader_vert_data, device, "creating basic vertex shader");
+	VkShaderModule basicShaderFragModule = createShaderModule(basic_shader_frag_size, basic_shader_frag_data, device, "creating basic fragment shader");
+
+	VkPipelineShaderStageCreateInfo renderShaderVertInfo = { 0 };
+	renderShaderVertInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	renderShaderVertInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	renderShaderVertInfo.module = basicShaderVertModule;
+	renderShaderVertInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo renderShaderFragInfo = { 0 };
+	renderShaderFragInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	renderShaderFragInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	renderShaderFragInfo.module = basicShaderFragModule;
+	renderShaderFragInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fontShaderVertInfo = { 0 };
+	fontShaderVertInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fontShaderVertInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+	fontShaderVertInfo.module = fontShaderVertModule;
+	fontShaderVertInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo fontShaderFragInfo = { 0 };
+	fontShaderFragInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+	fontShaderFragInfo.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+	fontShaderFragInfo.module = fontShaderFragModule;
+	fontShaderFragInfo.pName = "main";
+
+	VkPipelineShaderStageCreateInfo renderShaderStages[] = { renderShaderVertInfo, renderShaderFragInfo };
+	VkPipelineShaderStageCreateInfo fontShaderStages[] = { fontShaderVertInfo, fontShaderFragInfo };
+
+	// creating the pipeline
+	VkGraphicsPipelineCreateInfo renderPipelineInfo = { 0 };
+	renderPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	renderPipelineInfo.stageCount = sizeof(renderShaderStages) / sizeof(VkPipelineShaderStageCreateInfo);
+	renderPipelineInfo.pStages = renderShaderStages;
+
+	renderPipelineInfo.pVertexInputState = &vertexInputInfo;
+	renderPipelineInfo.pInputAssemblyState = &inputAssembly;
+	renderPipelineInfo.pViewportState = &viewportState;
+	renderPipelineInfo.pRasterizationState = &rasterizer;
+	renderPipelineInfo.pMultisampleState = &multisampling;
+	renderPipelineInfo.pDepthStencilState = nullptr;
+	renderPipelineInfo.pColorBlendState = &colorBlending;
+	renderPipelineInfo.pDynamicState = &dynamicState;
+
+	renderPipelineInfo.layout = device->renderPipeline.layout;
+	renderPipelineInfo.renderPass = window->renderPass;
+	renderPipelineInfo.subpass = 0;
+
+	renderPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	renderPipelineInfo.basePipelineIndex = -1;
+	renderPipelineInfo.flags = VK_PIPELINE_CREATE_ALLOW_DERIVATIVES_BIT;
+
+	VkGraphicsPipelineCreateInfo fontPipelineInfo = { 0 };
+	fontPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+	fontPipelineInfo.stageCount = sizeof(fontShaderStages) / sizeof(VkPipelineShaderStageCreateInfo);
+	fontPipelineInfo.pStages = fontShaderStages;
+
+	fontPipelineInfo.pVertexInputState = &vertexInputInfo;
+	fontPipelineInfo.pInputAssemblyState = &inputAssembly;
+	fontPipelineInfo.pViewportState = &viewportState;
+	fontPipelineInfo.pRasterizationState = &rasterizer;
+	fontPipelineInfo.pMultisampleState = &multisampling;
+	fontPipelineInfo.pDepthStencilState = nullptr;
+	fontPipelineInfo.pColorBlendState = &colorBlending;
+	fontPipelineInfo.pDynamicState = &dynamicState;
+
+	fontPipelineInfo.layout = device->fontPipeline.layout;
+	fontPipelineInfo.renderPass = window->renderPass;
+	fontPipelineInfo.subpass = 0;
+
+	fontPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+	fontPipelineInfo.basePipelineIndex = 0;
+	fontPipelineInfo.flags = VK_PIPELINE_CREATE_DERIVATIVE_BIT;
+
+	VkPipeline pipelines[] = { VK_NULL_HANDLE, VK_NULL_HANDLE };
+	VkGraphicsPipelineCreateInfo pipelineCreateInfos[] = { renderPipelineInfo, fontPipelineInfo };
+	uint pipelineCreateInfoCount = sizeof(pipelineCreateInfos) / sizeof(VkGraphicsPipelineCreateInfo);
+
+
+	checkCreation(
+		vkCreateGraphicsPipelines(device->device, VK_NULL_HANDLE, pipelineCreateInfoCount, pipelineCreateInfos, nullptr, pipelines),
+		"creating render pipelines"
+	);
+
+	device->renderPipeline.pipeline = pipelines[0];
+	device->fontPipeline.pipeline = pipelines[1];
+
+
+	vkDestroyShaderModule(device->device, basicShaderVertModule, nullptr);
+	vkDestroyShaderModule(device->device, basicShaderFragModule, nullptr);
+	vkDestroyShaderModule(device->device, fontShaderVertModule, nullptr);
+	vkDestroyShaderModule(device->device, fontShaderFragModule, nullptr);
 }
 
 
 void renderDeviceDestroyPipelines(RenderDevice device) {
 
-
+	vkDestroyPipeline(device->device, device->renderPipeline.pipeline, nullptr);
+	vkDestroyPipeline(device->device, device->fontPipeline.pipeline, nullptr);
+	vkDestroyPipelineLayout(device->device, device->renderPipeline.layout, nullptr);
+	vkDestroyPipelineLayout(device->device, device->fontPipeline.layout, nullptr);
 
 }
 
@@ -957,25 +1125,26 @@ void renderDeviceDestroyResources(RenderDevice device) {
 	Window window = device->window;
 
 	vkDestroyRenderPass(device->device, window->renderPass, nullptr);
+	avLog(AV_DEBUG_DESTROY, "destroyed renderpass");
 
 	for (uint i = 0; i < window->frameCount; i++) {
 		frameDestroyResources(device, window, window->frames[i]);
 	}
 
 	vkDestroyCommandPool(device->device, window->commandPool, nullptr);
-	avAssert(0, 0, "destoyed command pool");
+	avLog(AV_DEBUG_DESTROY, "destoyed command pool");
 
 	avFree(window->frames);
 
 	vkDestroySwapchainKHR(device->device, window->swapchain, nullptr);
-	avAssert(0, 0, "destroyed swapchain");
+	avLog(AV_DEBUG_DESTROY, "destroyed swapchain");
 }
 
 void renderDeviceDestroy(RenderDevice device) {
 
 
 	vkDestroyDevice(device->device, nullptr);
-	avAssert(0, 0, "destroyed render device");
+	avLog(AV_DEBUG_DESTROY, "destroyed render device");
 
 	avFree(device);
 }

@@ -1,4 +1,6 @@
 #include "core.h"
+#undef AV_LOG_CATEGORY
+#define AV_LOG_CATEGORY "AvCore"
 
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance) {
 
@@ -11,14 +13,24 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 	// allocate instance handle;
 	*pInstance = avAllocate(sizeof(AvInstance_T), 1, "allocating instance handle");
 
+	RendererType rendererType = getRendererType();
+	switch (rendererType) {
+	case RENDERER_TYPE_VULKAN:
+		avLog(AV_DEBUG, "using vulkan renderer");
+		break;
+	case RENDERER_TYPE_CUSTOM:
+		avLog(AV_DEBUG, "using custom renderer");
+		break;
+	}
+
 	// validation assertion
 	bool enableValidation = false;
 	if (!createInfo.disableDeviceValidation && renderInstanceCheckValidationSupport()) {
 		enableValidation = true;
-		avAssert(AV_SUCCESS, AV_SUCCESS, "validationlayers present");
+		avAssert(AV_VALIDATION_PRESENT, AV_VALIDATION_PRESENT, "validationlayers present");
 	} else if (!createInfo.disableDeviceValidation) {
 		enableValidation = false;
-		avAssert(AV_VALIDATION_NOT_PRESEND, AV_SUCCESS, "validationlayers requested not present");
+		avAssert(AV_VALIDATION_NOT_PRESENT, AV_VALIDATION_PRESENT, "validationlayers requested not present");
 	}
 
 	// init displaySurface
