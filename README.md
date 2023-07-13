@@ -80,7 +80,6 @@ the test executable should appear in the folder named avixel
 ## Posible improvements
 - add math to parameter definitions in parser
 
-
 ## Documentation
 Read the documentation in [[Documentation]]
 
