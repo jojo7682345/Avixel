@@ -58,6 +58,12 @@ clone the repository and run the following commands
 - shaderc
 - vulkanSDK( aka: vulkan-dev ) (>= 1.0)
 ### Windows
+Create enviroment variables called VULKAN_SDK and GLFW_SDK 
+pointing to the respective directories where the SDK's 
+are installed
+
+then do:
+
 ```shell
 gcc build/builder.c -o builder
 ./builder build AvGraphicsUtilities
@@ -66,7 +72,7 @@ gcc build/builder.c -o builder
 ```shell
 gcc build/builder.c -o builder
 ./builder build AvGraphicsUtilities
-sudo ./builder install
+sudo ./builder install AvGraphicsUtilities
 ```
 the test executable should appear in the AvGraphicsUtilities folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
 

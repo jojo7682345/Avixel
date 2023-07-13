@@ -29,7 +29,7 @@ compileShaders {
 AvGraphicsUtilities {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -std=c11 -ggdb -fPIC -D DEBUG
+	flags: -std=c11 -ggdb 
 	source: [
 		src
 	]
