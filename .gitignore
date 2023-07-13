@@ -27,7 +27,7 @@ builder.exe
 CppProperties.json
 
 #project export files
-AvGraphicsUtilities
-!include/AvGraphicsUtilities
+Avixel
+!include/Avixel
 
 

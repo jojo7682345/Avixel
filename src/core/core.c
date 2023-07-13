@@ -1,7 +1,7 @@
 #include "core.h"
 
 #undef AV_LOG_CATEGORY
-#define AV_LOG_CATEGORY "AvCore"
+#define AV_LOG_CATEGORY "avixel_core"
 
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance) {
 

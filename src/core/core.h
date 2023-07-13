@@ -1,6 +1,6 @@
 #pragma once
-#define AV_LOG_CATEGORY "AvGraphicsUtilities"
-#include <AvGraphicsUtilities/AvGraphicsUtilities.h>
+#define AV_LOG_CATEGORY "avixel"
+#include <avixel/avixel.h>
 #include "util/util.h"
 #include "logging/logging.h"
 #include "renderer/renderer.h"

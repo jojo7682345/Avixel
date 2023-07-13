@@ -1,8 +1,8 @@
 # include structure
 
-- AvGraphicsUtilities
-    - AvGraphicsUtilities.h
-        - AvTypedefs.h
-        - AvGraphicsCore.h
-        - AvLogging.h
-        - AvUiParser.h
+- avixel
+    - avixel.h
+        - avixel_typedefs.h
+        - avixel_core.h
+        - avixel_core.h
+        - avixel_ui_parser.h
