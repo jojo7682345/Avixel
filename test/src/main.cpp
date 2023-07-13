@@ -55,7 +55,7 @@ int main(int argC, const char** argV) {
 	AvWindowCreateInfo windowInfo = {};
 	windowInfo.sType = AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO;
 	windowInfo.fullscreen = false;
-	windowInfo.resizable = false;
+	windowInfo.resizable = true;
 	windowInfo.undecorated = false;
 	windowInfo.width = 1280;
 	windowInfo.height = 720;
