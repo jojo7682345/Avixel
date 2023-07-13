@@ -84,6 +84,9 @@ typedef enum AvAssertLevel {
 extern const char* defaulDisabledLogCategories[];
 extern const uint defaultDisabledLogCategoryCount;
 
+extern const AvResult defaultDisabledMessages[];
+extern const uint defaultDisabledCategoryCount;
+
 
 #define AV_LOCATION_ARGS uint64 line, const char* file, const char* func
 #define AV_LOCATION_PARAMS __LINE__, __FILE__,__func__
@@ -123,5 +126,8 @@ typedef struct AvLogSettings {
 
 	uint32 disabledCategoryCount;
 	const char** disabledCategories;
+
+	uint32 disabledMessageCount;
+	const AvResult* disabledMessages;
 }AvLogSettings;
 extern const AvLogSettings avLogSettingsDefault;

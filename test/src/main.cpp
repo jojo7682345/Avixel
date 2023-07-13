@@ -21,10 +21,14 @@ void buildInterface(AvInstance instance) {
 
 const char* disabledLogCategories[] = {
 	"AvGraphicsUtilities",
-	"AvCore",
-	"AvVulkanRenderer"
+	//"AvCore",
+	//"AvVulkanRenderer"
 };
 uint disabledLogCategoryCount = sizeof(disabledLogCategories) / sizeof(const char*);
+
+AvResult disabledLogMessages[] = {
+};
+uint disabledLogMessageCount = sizeof(disabledLogMessages) / sizeof(AvResult);
 
 int main(int argC, const char** argV) {
 
@@ -41,6 +45,8 @@ int main(int argC, const char** argV) {
 	logSettings.colors = true;
 	logSettings.disabledCategories = disabledLogCategories;
 	logSettings.disabledCategoryCount = disabledLogCategoryCount;
+	logSettings.disabledMessages = disabledLogMessages;
+	logSettings.disabledMessageCount = disabledLogMessageCount;
 	logSettings.validationLevel = AV_VALIDATION_LEVEL_WARNINGS_AND_ERRORS;
 	logSettings.assertLevel = AV_ASSERT_LEVEL_NORMAL;
 	logSettings.level = AV_LOG_LEVEL_ALL;

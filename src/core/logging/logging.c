@@ -44,6 +44,10 @@ uint blacklistedCategoryCount = 0;
 const char** blacklistedCategories = nullptr;
 AvAssertLevel AV_ASSERT_LEVEL = AV_ASSERT_LEVEL_DEFAULT;
 
+uint blacklistedMessageCount = 0;
+const AvResult* blacklistedMessages = nullptr;
+
+
 char AV_LOG_PROJECT_NAME[64] = "PROJECT_NAME_NOT_SPECIFIED";
 uint AV_LOG_PROJECT_VERSION = 0;
 
@@ -53,6 +57,10 @@ const char* defaulDisabledLogCategories[] = {
 	"AvVulkanRenderer"
 };
 const uint defaultDisabledLogCategoryCount = sizeof(defaulDisabledLogCategories) / sizeof(const char*);
+
+const AvResult defaultDisabledMessages[] = {
+};
+const uint defaultDisabledMessageCount = sizeof(defaultDisabledMessages) / sizeof(AvResult);
 
 const AvLogSettings avLogSettingsDefault = {
 	.level = AV_LOG_LEVEL_DEFAULT,
@@ -71,6 +79,8 @@ const AvLogSettings avLogSettingsDefault = {
 	.printCategory = AV_LOG_CATEGORY_DEFAULT,
 	.disabledCategoryCount = defaultDisabledLogCategoryCount,
 	.disabledCategories = defaulDisabledLogCategories,
+	.disabledMessageCount = defaultDisabledMessageCount,
+	.disabledMessages = defaultDisabledMessages,
 };
 
 void setLogSettings(AvLogSettings settings) {
@@ -111,12 +121,23 @@ void setLogSettings(AvLogSettings settings) {
 
 	blacklistedCategories = settings.disabledCategories;
 	blacklistedCategoryCount = settings.disabledCategoryCount;
+	blacklistedMessages = settings.disabledMessages;
+	blacklistedMessageCount = settings.disabledMessageCount;
 
 }
 
 bool checkCategoryDisabled(const char* category) {
 	for (uint i = 0; i < blacklistedCategoryCount; i++) {
 		if (strcmp(blacklistedCategories[i], category) == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+bool checkMessageDisabled(AvResult result) {
+	for (uint i = 0; i < blacklistedMessageCount; i++) {
+		if (blacklistedMessages[i] == result){
 			return true;
 		}
 	}
@@ -193,7 +214,7 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 
 		MESSAGE(AV_DEBUG, "debug");
 		MESSAGE(AV_DEBUG_CREATE, "create");
-		MESSAGE(AV_DEBUG_DESTROY, "create");
+		MESSAGE(AV_DEBUG_DESTROY, "destroy");
 		MESSAGE(AV_DEBUG_SUCCESS, "success");
 		MESSAGE(AV_DEBUG_INFO, "info");
 		MESSAGE(AV_VALIDATION_PRESENT, "validation");
@@ -312,7 +333,7 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 
 void avLog_(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* msg) {
 
-	if (checkCategoryDisabled(category)) {
+	if (checkCategoryDisabled(category) || checkMessageDisabled(result)) {
 		return;
 	}
 	
@@ -328,7 +349,7 @@ void avLog_(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* msg
 
 void avAssert_(AvResult result, AvResult valid, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* msg) {
 
-	bool enabled = !checkCategoryDisabled(category);
+	bool enabled = !checkCategoryDisabled(category) && !checkMessageDisabled(result);
 
 	if ((result >= AV_LOG_LEVEL || result >= AV_ASSERT_LEVEL) && enabled) {
 		printTags(result, line, file, func, category, msg);
