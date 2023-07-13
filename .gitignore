@@ -21,7 +21,8 @@ builder.exe
 !.vs/*.vs.json
 
 #project export files
-AvGraphicsUtilities/
+avixel/
 
+CppProperties.json
 
 /builder.exe
