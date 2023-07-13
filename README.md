@@ -52,6 +52,7 @@ clone the repository and run the following commands
 ### Required dependencies
 #### run depenencies
 - vulkan drivers (>= 1.0)
+- vulkan validation layers (optional: for debugging)
 #### build dependencies
 - glfw >= 3.3.8 _(might work with older versions)_
 - shaderc
