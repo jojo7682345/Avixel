@@ -1,4 +1,5 @@
 #pragma once
+#define AV_LOG_CATEGORY "AvGraphicsUtilities"
 #include <AvGraphicsUtilities/AvGraphicsUtilities.h>
 #include "util/util.h"
 #include "logging/logging.h"
@@ -18,6 +19,10 @@ typedef struct AvInstance_T {
 	Window window;
 	RenderDevice renderDevice;
 }AvInstance_T;
+
+typedef struct AvWindow_T {
+
+} AvWindow_T;
 
 
 

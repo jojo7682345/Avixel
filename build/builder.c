@@ -290,7 +290,45 @@ int filesEqual(const char* newFile, const char* original) {
 
 }
 
+int copyFile(const char* source, const char* destination) {
+	char ch = '\0';
+	FILE* fs = NULL;
+	FILE* ft = NULL;
+	fs = fopen(source, "rb");
+	if (fs == NULL) {
+		PANIC("Error in Opening the file, %s\n", source);
+		return 0;
+	}
 
+	fseek(fs, 0, SEEK_END);
+	size_t size = ftell(fs);
+	fseek(fs, 0, SEEK_SET);
+
+	unsigned char* buffer = malloc(size);
+	fread(buffer, 1, size, fs);
+
+	ft = fopen(destination, "wb");
+	if (ft == NULL) {
+		PANIC("Error in Opening the file, %s\n", destination);
+		return 0;
+	}
+	fwrite(buffer, 1, size, ft);
+	free(buffer);
+	printf("File copied successfully.\n");
+	fclose(fs);
+	fclose(ft);
+
+#ifndef _WIN32
+	struct stat statRes;
+	if (stat(source, &statRes) < 0) {
+		PANIC("Failed to get the privileges of the source file");
+	}
+	chmod(destination, statRes.st_mode);
+#endif
+
+
+	return 0;
+}
 
 void compileCodeFile(const char* source, char* file, const char* imBuild, const char*** compiledFiles, size_t* compiledCount, int includeCount, const char** include, const char* compiler, const char* flags, const char* outType) {
 
@@ -298,7 +336,9 @@ void compileCodeFile(const char* source, char* file, const char* imBuild, const 
 	
 	Cstr_Array args = { 0 };
 	args = cstr_array_append(args, compiler);
-	args = cstr_array_concat(args, splitString(flags, ' '));
+	if (flags[0] != '\0') {
+		args = cstr_array_concat(args, splitString(flags, ' '));
+	}
 	Cstr_Array includes = { .count = includeCount,.elems = include };
 	args = cstr_array_concat(args, includes);
 	args = cstr_array_append(args, "-MD");
@@ -334,7 +374,7 @@ void compile(const char* source, const char* immediate, const char*** compiledFi
 	
 		if (isValidType) {
 
-			compileCodeFile(source,file,imBuild,compiledFiles,compiledCount,includeCount, include,compiler,flags, outType);
+			compileCodeFile(source,(char*)file,imBuild,compiledFiles,compiledCount,includeCount, include,compiler,flags, outType);
 		} else {
 			if (IS_DIR(PATH(source,file))) {
 				if (isValidDir(file)) {
@@ -360,14 +400,16 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 		Cstr_Array args = {0};
 		args = cstr_array_append(args, project.compiler);
-		args = cstr_array_concat(args, splitString(project.flags,' '));
+		if (project.flags[0] != '\0') {
+			args = cstr_array_concat(args, splitString(project.flags, ' '));
+		}
 		args = cstr_array_append(args, "-o");
 		args = cstr_array_append(args, PATH("bin", output));
 		Cstr_Array objectFiles = {.count=compiledCount,.elems=compiledFiles};
 		args = cstr_array_concat(args, objectFiles);
-		Cstr_Array libDirs = {.count=project.libdirCount,.elems=project.libdir};
+		Cstr_Array libDirs = {.count=project.libdirCount,.elems=(const char**)project.libdir};
 		args = cstr_array_concat(args,libDirs);
-		Cstr_Array libs = {.count=project.s_libCount,.elems=project.s_libs};
+		Cstr_Array libs = {.count=project.s_libCount,.elems=(const char**)project.s_libs};
 		args = cstr_array_concat(args,libs);
 		CMD_ARR(args);
 		return output;
@@ -401,15 +443,17 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 		Cstr_Array args = {0};
 		args = cstr_array_append(args, project.compiler);
-		args = cstr_array_concat(args, splitString(project.flags,' '));
+		if (project.flags[0] != '\0') {
+			args = cstr_array_concat(args, splitString(project.flags, ' '));
+		}
 		args = cstr_array_append(args, "-shared");
 		args = cstr_array_append(args, "-o");
 		args = cstr_array_append(args, PATH("lib", output));
-		Cstr_Array objectFiles = {.count=compiledCount,.elems=compiledFiles};
+		Cstr_Array objectFiles = {.count=compiledCount,.elems=(const char**)compiledFiles};
 		args = cstr_array_concat(args, objectFiles);
-		Cstr_Array libDirs = {.count=project.libdirCount,.elems=project.libdir};
+		Cstr_Array libDirs = {.count=project.libdirCount,.elems=(const char**)project.libdir};
 		args = cstr_array_concat(args,libDirs);
-		Cstr_Array libs = {.count=project.s_libCount,.elems=project.s_libs};
+		Cstr_Array libs = {.count=project.s_libCount,.elems=(const char**)project.s_libs};
 		args = cstr_array_concat(args,libs);
 		CMD_ARR(args);
 		return output;
@@ -450,7 +494,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 
 				}
 				const char* out = PATH(project.outDir, curPath);
-				nextPath = out;
+				nextPath = (char*) out;
 				while (1) {
 					char* nextSep = (char*)memchr(nextPath, PATH_SEP[0], strlen(out));
 					nextPath = nextSep;
@@ -462,8 +506,11 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 					memcpy(imDir, out, nextPath - out);
 					nextPath += 1;
 					imDir[511] = '\0';
-					if (!PATH_EXISTS(imDir) && IS_DIR(imDir)) {
+					if (!PATH_EXISTS(imDir)) {
 						MKDIRS(imDir);
+					}
+					else {
+						//printf("not a dir %s\n", imDir);
 					}
 				}
 
@@ -1017,46 +1064,6 @@ int loadProjectFile(const char* file, Project* project) {
 	return ret;
 }
 
-int copyFile(const char* source, const char* destination) {
-	char ch = '\0';
-	FILE* fs = NULL;
-	FILE* ft = NULL;
-	fs = fopen(source, "rb");
-	if (fs == NULL) {
-		PANIC("Error in Opening the file, %s\n", source);
-		return 0;
-	}
-
-	fseek(fs, 0, SEEK_END);
-	size_t size = ftell(fs);
-	fseek(fs, 0, SEEK_SET);
-
-	unsigned char* buffer = malloc(size);
-	fread(buffer, 1, size, fs);
-
-	ft = fopen(destination, "wb");
-	if (ft == NULL) {
-		PANIC("Error in Opening the file, %s\n", destination);
-		return 0;
-	}
-	fwrite(buffer, 1, size, ft);
-	free(buffer);
-	printf("File copied successfully.\n");
-	fclose(fs);
-	fclose(ft);
-
-#ifndef _WIN32
-	struct stat statRes;
-	if (stat(source, &statRes) < 0) {
-		PANIC("Failed to get the privileges of the source file");
-	}
-	chmod(destination, statRes.st_mode);
-#endif
-	
-
-	return 0;
-}
-
 #ifndef _WIN32
 #define _POSIX_SOURCE
 #include <sys/stat.h>
@@ -1122,18 +1129,18 @@ int buildProject(Project project, const char* projectName) {
 		}
 		
 		for (int i = 0; i < project.includeCount; i++) {
-			project.include[i] = CONCAT("-I", extractEnv(project.include[i],project));
+			project.include[i] = (char*) CONCAT("-I", extractEnv(project.include[i],project));
 		}
 		for(int i = 0; i < project.s_libCount; i++){
-			project.s_libs[i] = CONCAT("-l",project.s_libs[i]);
+			project.s_libs[i] = (char*) CONCAT("-l",project.s_libs[i]);
 		}
 		for(int i = 0; i < project.libdirCount; i++){
-			project.libdir[i] = CONCAT("-L",extractEnv(project.libdir[i],project));
+			project.libdir[i] = (char*) CONCAT("-L",extractEnv(project.libdir[i],project));
 		}
 
 		if (project.fileTypeCount == 0) {
 			
-			project.fileTypes = defaultFileTypes;
+			project.fileTypes = (char**) defaultFileTypes;
 			project.fileTypeCount = sizeof(defaultFileTypes) / sizeof(const char*);
 		}
 
@@ -1145,7 +1152,7 @@ int buildProject(Project project, const char* projectName) {
 
 		const char* outFolder = project.sourceCount == 1 ? tempBuild : PATH(tempBuild, source);
 
-		compile(source, outFolder, &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags, project.fileTypeCount, project.fileTypes, project.outType);
+		compile(source, outFolder, &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags, project.fileTypeCount,(const char**) project.fileTypes, project.outType);
 		const char* output = linker(compiledFiles, compiledCount, project);
 
 		if (!PATH_EXISTS(projectName)) {
@@ -1221,12 +1228,18 @@ void cleanWorkspace() {
 			RM(PATH("bin", file));
 		}
 		});
+	if (PATH_EXISTS("bin")) {
+		RM("bin");
+	}
 	FOREACH_FILE_IN_DIR(file, "lib", {
 		if (isValidDir(file)) {
 			RM(PATH("lib", file));
 		}
 
 		});
+	if (PATH_EXISTS("lib")) {
+		RM("lib");
+	}
 }
 
 int processProject(const char* projectName, OperationType op) {

@@ -22,9 +22,11 @@ builder.exe
 #project tasks and launch configurations for visual studio
 !.vs/*.vs.json
 .obsidian
+
 CppProperties.json
 
 #project export files
 AvGraphicsUtilities
 !include/AvGraphicsUtilities
+
 

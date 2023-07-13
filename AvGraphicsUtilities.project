@@ -4,33 +4,26 @@ shaderExport {
 	source: [
 		tools/shaderExport/src
 	]
-	files: [
-		.c
+	include: [
+		#$(VULKAN_SDK)/Include
+	]
+	libdir: [
+		#$(VULKAN_SDK)/Lib
+	]
+	lib: [
+		shaderc_shared
 	]
 }
 compileShaders {
 	type: CUSTOM
-	outType: .spv
-	compiler: glslc
+	outType: .h
+	outDir: shaders/include
+	compiler: bin/shaderExport
 	source: [
 		shaders/src
 	]
 	files: [
-		.vert
-		.frag
-		.comp
-	]
-}
-exportShaders {
-	type: CUSTOM
-	outDir: shaders/include
-	outType: .h
-	compiler: bin/shaderExport
-	source: [
-		build/tmp/compileShaders
-	]
-	files: [
-		.spv
+		.shader
 	]
 }
 AvGraphicsUtilities {

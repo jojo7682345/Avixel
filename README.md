@@ -50,17 +50,22 @@ A GUI library in written in C using Vulkan and GLFW
 ## Building
 clone the repository and run the following commands
 ### Required dependencies
-- vulkan >= 1.0
+#### run depenencies
+- vulkan drivers (>= 1.0)
+- vulkan validation layers (optional: for debugging)
+#### build dependencies
 - glfw >= 3.3.8 _(might work with older versions)_
+- shaderc
+- vulkanSDK( aka: vulkan-dev ) (>= 1.0)
 ### Windows
 ```shell
 gcc build/builder.c -o builder
-./builder build
+./builder build AvGraphicsUtilities
 ```
 ### linux
 ```shell
 gcc build/builder.c -o builder
-./builder build
+./builder build AvGraphicsUtilities
 sudo ./builder install
 ```
 the test executable should appear in the AvGraphicsUtilities folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
