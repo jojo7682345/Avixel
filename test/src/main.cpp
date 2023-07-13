@@ -1,6 +1,6 @@
 #define AV_LOG_CATEGORY "application"
 #define DEBUG
-#include <AvGraphicsUtilities/AvGraphicsUtilities.h>
+#include <avixel/avixel.h>
 
 void buildInterface(AvInstance instance) {
 	AvInterface interface;
@@ -20,7 +20,7 @@ void buildInterface(AvInstance instance) {
 }
 
 const char* disabledLogCategories[] = {
-	"AvGraphicsUtilities",
+	"avixel",
 	//"AvCore",
 	//"AvVulkanRenderer"
 };

@@ -8,7 +8,7 @@
 #include <stdio.h>
 
 #undef AV_LOG_CATEGORY
-#define AV_LOG_CATEGORY "AvVulkanRenderer"
+#define AV_LOG_CATEGORY "avixel_renderer"
 
 #define MAX_FRAMES_IN_FLIGHT 2
 

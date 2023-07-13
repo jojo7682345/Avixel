@@ -52,9 +52,9 @@ char AV_LOG_PROJECT_NAME[64] = "PROJECT_NAME_NOT_SPECIFIED";
 uint AV_LOG_PROJECT_VERSION = 0;
 
 const char* defaulDisabledLogCategories[] = {
-	"AvGraphicsUtilities",
-	"AvCore",
-	"AvVulkanRenderer"
+	"avixel",
+	"avixel_core",
+	"avixel_renderer"
 };
 const uint defaultDisabledLogCategoryCount = sizeof(defaulDisabledLogCategories) / sizeof(const char*);
 

@@ -1095,7 +1095,7 @@ void installProject(Project project, const char* projectName){
 	}
 
 	const char* projectFile = CONCAT(LIB_PREFIX,project.name,project.type==PROJECT_TYPE_DLL?DLL_EXTENSION:LIB_EXTENSION); 
-	const char* outDir = CONCAT(PATH_SEP,PATH("usr","lib"));
+	const char* outDir = CONCAT(PATH_SEP,PATH("usr","local","lib"));
 	copyFile(
 		PATH("lib",projectFile), 
 		PATH(outDir,projectFile)

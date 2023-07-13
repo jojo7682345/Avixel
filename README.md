@@ -1,4 +1,4 @@
-# AvGraphicsUtilities
+# Avixel
 A GUI library in written in C using Vulkan and GLFW
 
 ## Goals for the project
@@ -58,17 +58,23 @@ clone the repository and run the following commands
 - shaderc
 - vulkanSDK( aka: vulkan-dev ) (>= 1.0)
 ### Windows
+Create enviroment variables called VULKAN_SDK and GLFW_SDK 
+pointing to the respective directories where the SDK's 
+are installed
+
+then do:
+
 ```shell
 gcc build/builder.c -o builder
-./builder build AvGraphicsUtilities
+./builder build avixel
 ```
 ### linux
 ```shell
 gcc build/builder.c -o builder
-./builder build AvGraphicsUtilities
-sudo ./builder install
+./builder build avixel
+sudo ./builder install avixel
 ```
-the test executable should appear in the AvGraphicsUtilities folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
+the test executable should appear in the avixel folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
 
 ## Documentation
 Read the documentation in [[Documentation]]

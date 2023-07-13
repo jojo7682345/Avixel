@@ -106,7 +106,7 @@ void avAssert_(AvResult result, AvResult valid, AV_LOCATION_ARGS, AV_CATEGORY_AR
 #define AV_LOG_CATEGORY "misc"
 #endif
 
-#ifdef DEBUG
+#ifndef NDEBUG
 #define avLog(result, message) avLog_(result,AV_LOCATION_PARAMS, AV_LOG_CATEGORY, message)
 #define avAssert(result, valid, message) avAssert_(result,valid,AV_LOCATION_PARAMS, AV_LOG_CATEGORY, message)
 #else 
