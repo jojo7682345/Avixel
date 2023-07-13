@@ -43,6 +43,10 @@ int main(int argC, const char** argV) {
 	logSettings.printType = true;
 	logSettings.printFunc = false;
 	logSettings.printError = true;
+<<<<<<< HEAD
+	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
+	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
+=======
 	logSettings.printCategory = false;
 	logSettings.colors = true;
 	logSettings.disabledCategories = disabledLogCategories;
@@ -51,6 +55,7 @@ int main(int argC, const char** argV) {
 	logSettings.disabledMessageCount = disabledLogMessageCount;
 	logSettings.validationLevel = AV_VALIDATION_LEVEL_WARNINGS_AND_ERRORS;
 	logSettings.assertLevel = AV_ASSERT_LEVEL_NORMAL;
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
 	logSettings.level = AV_LOG_LEVEL_ALL;
 
 	AvWindowCreateInfo windowInfo = {};

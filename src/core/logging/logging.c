@@ -209,6 +209,71 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 	bool unknownCode = false;
 
 	switch (result) {
+<<<<<<< HEAD
+	case AV_SUCCESS:
+		message = "success";
+		break;
+	case AV_DEBUG:
+		message = "debug";
+		break;
+	case AV_INFO:
+		message = "info";
+		break;
+	case AV_WARNING:
+		message = "warning";
+		break;
+	case AV_ERROR:
+		message = "error";
+		break;
+	case AV_OUT_OF_BOUNDS:
+		message = "out of bounds";
+		break;
+	case AV_MEMORY_ERROR:
+		message = "memory error";
+		break;
+	case AV_CREATION_ERROR:
+		message = "creation error";
+		break;
+	case AV_NO_SUPPORT:
+		message = "no support";
+		break;
+	case AV_INVALID_ARGUMENTS:
+		message = "invalid arguments";
+		break;
+	case AV_TIMEOUT:
+		message = "timeout";
+		break;
+	case AV_VALIDATION_NOT_PRESEND:
+		message = "validation not present";
+		break;
+	case AV_UNSPECIFIED_CALLBACK:
+		message = "unspecified callback";
+		break;
+	case AV_TEST_ERROR:
+		message = "test error";
+		break;
+	case AV_NOT_INITIALIZED:
+		message = "not initialized";
+		break;
+	case AV_NOT_IMPLEMENTED:
+		message = "not implemented";
+		break;
+	case AV_NOT_FOUND:
+		message = "not found";
+		break;
+	case AV_ALREADY_INITIALIZED:
+		message = "already initialized";
+		break;
+	case AV_ALREADY_EXISTS:
+		message = "already exists";
+		break;
+	case AV_UNABLE_TO_PARSE:
+		message = "parse error";
+		break;
+	case AV_INVALID_SYNTAX:
+		message = "invalid syntax";
+		break;
+=======
 		// SUCCESS
 		MESSAGE(AV_SUCCESS, "success");	// 0
 		MESSAGE(AV_TEST_SUCCESS, "test success"); // 1
@@ -258,6 +323,7 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 		MESSAGE(AV_RENDER_ERROR, "render error"); // 15
 		MESSAGE(AV_PRESENT_ERROR, "present error"); // 16
 		MESSAGE(AV_SWAPCHAIN_ERROR, "swapchain error"); // 17
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
 	default:
 		message = error_code;
 		unknownCode = true;

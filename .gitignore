@@ -26,7 +26,12 @@ builder.exe
 CppProperties.json
 
 #project export files
+<<<<<<< HEAD
+avixel/
+=======
 Avixel
 !include/Avixel
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
 
+CppProperties.json
 

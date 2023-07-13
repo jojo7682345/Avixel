@@ -86,6 +86,11 @@
           ]
         }
       ]
+    },
+    {
+      "taskLabel": "task-AvGraphicsUtilitiesTest",
+      "appliesTo": "AvGraphicsUtilities/AvGraphicsUtilitiesTest.exe",
+      "type": "launch"
     }
   ]
 }
