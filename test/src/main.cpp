@@ -1,5 +1,6 @@
-
-#include <GraphicsUtilities.h>
+#define AV_LOG_CATEGORY "application"
+#define DEBUG
+#include <avixel/avixel.h>
 
 void buildInterface(AvInstance instance) {
 	AvInterface interface;
@@ -18,29 +19,54 @@ void buildInterface(AvInstance instance) {
 	
 }
 
+const char* disabledLogCategories[] = {
+	"avixel",
+	//"AvCore",
+	//"AvVulkanRenderer"
+};
+uint disabledLogCategoryCount = sizeof(disabledLogCategories) / sizeof(const char*);
+
+AvResult disabledLogMessages[] = {
+	AV_DEBUG_CREATE,
+	AV_DEBUG_DESTROY,
+};
+uint disabledLogMessageCount = sizeof(disabledLogMessages) / sizeof(AvResult);
 
 int main(int argC, const char** argV) {
 
-	AvInstance instance;
+	AvInstance instance{};
 
 	AvLogSettings logSettings = avLogSettingsDefault;
 	logSettings.printSuccess = true;
 	logSettings.printCode = false;
+	logSettings.printAssert = false;
 	logSettings.printType = true;
 	logSettings.printFunc = false;
 	logSettings.printError = true;
+<<<<<<< HEAD
 	logSettings.validationLevel = AV_LOG_LEVEL_WARNING;
 	logSettings.assertLevel = AV_ASSERT_LEVEL_ALL;
+=======
+	logSettings.printCategory = false;
+	logSettings.colors = true;
+	logSettings.disabledCategories = disabledLogCategories;
+	logSettings.disabledCategoryCount = disabledLogCategoryCount;
+	logSettings.disabledMessages = disabledLogMessages;
+	logSettings.disabledMessageCount = disabledLogMessageCount;
+	logSettings.validationLevel = AV_VALIDATION_LEVEL_WARNINGS_AND_ERRORS;
+	logSettings.assertLevel = AV_ASSERT_LEVEL_NORMAL;
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
 	logSettings.level = AV_LOG_LEVEL_ALL;
 
 	AvWindowCreateInfo windowInfo = {};
 	windowInfo.sType = AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO;
 	windowInfo.fullscreen = false;
 	windowInfo.resizable = false;
+	windowInfo.undecorated = false;
 	windowInfo.width = 1280;
 	windowInfo.height = 720;
-	windowInfo.x = AV_WINDOW_POSITION_NOT_SPECIFIED;
-	windowInfo.y = AV_WINDOW_POSITION_NOT_SPECIFIED;
+	windowInfo.x = AV_WINDOW_POSITION_CENTERED;
+	windowInfo.y = AV_WINDOW_POSITION_CENTERED;
 	windowInfo.title = "window";
 
 	AvProjectInfo projectInfo = {};
@@ -53,15 +79,19 @@ int main(int argC, const char** argV) {
 	instanceInfo.logSettings = &logSettings;
 	instanceInfo.disableDeviceValidation = false;
 	instanceInfo.windowInfo = windowInfo;
-
+	
 	avAssert(
 		avInstanceCreate(instanceInfo, &instance),
 		AV_SUCCESS,
 		"instance creation"
 	);
 
-
 	buildInterface(instance);
+
+	while (!avShutdownRequested(instance)) {
+
+		avUpdate(instance);
+	}
 
 	avInstanceDestroy(instance);
 	

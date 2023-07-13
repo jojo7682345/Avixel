@@ -1,0 +1,74 @@
+shaderExport {
+	type: EXE
+	compiler: gcc
+	source: [
+		tools/shaderExport/src
+	]
+	include: [
+		#$(VULKAN_SDK)/Include
+	]
+	libdir: [
+		#$(VULKAN_SDK)/Lib
+	]
+	lib: [
+		shaderc_shared
+	]
+}
+compileShaders {
+	type: CUSTOM
+	outType: .h
+	outDir: shaders/include
+	compiler: bin/shaderExport
+	source: [
+		shaders/src
+	]
+	files: [
+		.shader
+	]
+}
+avixel {
+	type: DLL
+	export: $(OUTPUT)
+	flags: -std=c11 -ggdb 
+	source: [
+		src
+	]
+	include: [
+		include
+		shaders/include
+		#$(VULKAN_SDK)/Include
+		#$(GLFW_SDK)/include
+	]
+	libdir: [
+		#$(GLFW_SDK)/lib-mingw-w64
+		#$(VULKAN_SDK)/Lib
+	]
+	lib: [
+		^glfw
+		^vulkan
+		#vulkan-1
+		#glfw3
+		#user32
+		#gdi32
+	]
+}
+avixelTest {
+	type: EXE 
+	export: [
+		test/assets
+		$(OUTPUT)
+	]
+	flags: -Wall -ggdb
+	source: [
+		test/src
+	]
+	include: [
+		include
+	]
+	libdir: [
+		lib
+	]
+	lib: [
+		avixel
+	]
+}

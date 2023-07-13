@@ -1,15 +1,16 @@
 #pragma once
 #include "../core.h"
 
-#define ANSI_COLOR_RED     "\x1b[31m"
-#define ANSI_COLOR_GREEN   "\x1b[32m"
-#define ANSI_COLOR_YELLOW  "\x1b[33m"
-#define ANSI_COLOR_BLUE    "\x1b[34m"
-#define ANSI_COLOR_MAGENTA "\x1b[35m"
-#define ANSI_COLOR_CYAN    "\x1b[36m"
-#define ANSI_COLOR_RESET   "\x1b[0m"
+extern const char* AV_COLOR_RED;
+extern const char* AV_COLOR_GREEN;
+extern const char* AV_COLOR_YELLOW  ;
+extern const char* AV_COLOR_BLUE    ;
+extern const char* AV_COLOR_MAGENTA ;
+extern const char* AV_COLOR_CYAN    ;
+extern const char* AV_COLOR_RESET   ;
 
 extern AvLogLevel AV_LOG_LEVEL;
+
 
 void setLogSettings(AvLogSettings settings);
 void setProjectDetails(const char* projectName, uint version);
@@ -21,4 +22,4 @@ typedef enum ValidationMessageType {
 	VALIDATION_MESSAGE_TYPE_PERFORMANCE,
 }ValidationMessageType;
 
-void logDeviceValidation(const char* renderer, AvLogLevel level, ValidationMessageType type, const char* message);
+void logDeviceValidation(const char* renderer, AvValidationLevel level, ValidationMessageType type, const char* message);

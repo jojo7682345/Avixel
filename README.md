@@ -1,4 +1,4 @@
-# AvGraphicsUtilities
+# Avixel
 A GUI library in written in C using Vulkan and GLFW
 
 ## Goals for the project
@@ -7,6 +7,13 @@ A GUI library in written in C using Vulkan and GLFW
  - Migrate project from Visual Studio ( done )
  - Linux and rpi support
  - Add embedded system support (replace vulkan renderer with cpu renderer based on platform)
+
+## Primitive types
+- Rect
+- Image
+- Character
+- Viewport (later)
+- *Polygon (not certain)*
 
 ## Tasks
 - [x] Build system migration
@@ -42,18 +49,42 @@ A GUI library in written in C using Vulkan and GLFW
 
 ## Building
 clone the repository and run the following commands
+### Required dependencies
+#### run depenencies
+- vulkan drivers (>= 1.0)
+- vulkan validation layers (optional: for debugging)
+#### build dependencies
+- glfw >= 3.3.8 _(might work with older versions)_
+- shaderc
+- vulkanSDK( aka: vulkan-dev ) (>= 1.0)
 ### Windows
+<<<<<<< HEAD
+=======
+Create enviroment variables called VULKAN_SDK and GLFW_SDK 
+pointing to the respective directories where the SDK's 
+are installed
+
+then do:
+
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16
 ```shell
 gcc build/builder.c -o builder
-./builder build
+./builder build avixel
 ```
 ### linux
 ```shell
 gcc build/builder.c -o builder
-./builder build
-sudo ./builder install
+./builder build avixel
+sudo ./builder install avixel
 ```
+<<<<<<< HEAD
 the test executable should appear in the AvGraphicsUtilities folder
 
 ## Posible improvements
 - add math to parameter definitions in parser
+=======
+the test executable should appear in the avixel folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
+
+## Documentation
+Read the documentation in [[Documentation]]
+>>>>>>> c9aa9d7bd7700d3ffa37d96e13c9d8b74b491b16

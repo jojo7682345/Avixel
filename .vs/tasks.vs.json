@@ -47,7 +47,8 @@
         {
           "command": "builder",
           "args": [
-            "BUILD"
+            "build",
+            "avixel"
           ]
         },
         {
@@ -74,7 +75,8 @@
         {
           "command": "builder",
           "args": [
-            "CLEAN"
+            "clean",
+            "avixel"
           ]
         },
         {

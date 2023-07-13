@@ -1,6 +1,7 @@
 #include "core.h"
-#include "GraphicsUtilities.h"
 
+#undef AV_LOG_CATEGORY
+#define AV_LOG_CATEGORY "avixel_core"
 
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance) {
 
@@ -13,14 +14,24 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 	// allocate instance handle;
 	*pInstance = avAllocate(sizeof(AvInstance_T), 1, "allocating instance handle");
 
+	RendererType rendererType = getRendererType();
+	switch (rendererType) {
+	case RENDERER_TYPE_VULKAN:
+		avLog(AV_DEBUG, "using vulkan renderer");
+		break;
+	case RENDERER_TYPE_CUSTOM:
+		avLog(AV_DEBUG, "using custom renderer");
+		break;
+	}
+
 	// validation assertion
 	bool enableValidation = false;
 	if (!createInfo.disableDeviceValidation && renderInstanceCheckValidationSupport()) {
 		enableValidation = true;
-		avAssert(AV_SUCCESS, AV_SUCCESS, "validationlayers present");
+		avAssert(AV_VALIDATION_PRESENT, AV_VALIDATION_PRESENT, "validationlayers present");
 	} else if (!createInfo.disableDeviceValidation) {
 		enableValidation = false;
-		avAssert(AV_VALIDATION_NOT_PRESEND, AV_SUCCESS, "validationlayers requested not present");
+		avAssert(AV_VALIDATION_NOT_PRESENT, AV_VALIDATION_PRESENT, "validationlayers requested not present");
 	}
 
 	// init displaySurface
@@ -42,23 +53,30 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 	windowInfo.properties.resizable = createInfo.windowInfo.resizable;
 	windowInfo.properties.fullSurface = createInfo.windowInfo.fullscreen;
 	windowInfo.properties.title = createInfo.windowInfo.title;
+	windowInfo.properties.decorated = !createInfo.windowInfo.undecorated;
 	windowInfo.onWindowDisconnect;	// TODO: setup close event
 	windowInfo.onWindowResize;		// TODO: setup resize event
 	displaySurfaceCreateWindow(*pInstance, windowInfo, nullptr, &(*pInstance)->window);
 
 	RenderDeviceCreateInfo renderDeviceInfo = { 0 };
 	renderDeviceInfo.window = (*pInstance)->window;
-	renderDeviceCreate(*pInstance, (*pInstance)->window, &(*pInstance)->renderDevice);
+	renderDeviceCreate(*pInstance, renderDeviceInfo, &(*pInstance)->renderDevice);
 
-	renderDeviceCreateResources((*pInstance)->renderDevice, (*pInstance)->window);
+	renderDeviceCreateRenderResources((*pInstance)->renderDevice);
+
+
+	renderDeviceCreatePipelines((*pInstance)->renderDevice, 0, nullptr);
 
 	return AV_SUCCESS;
 }
 
 void avInstanceDestroy(AvInstance instance) {
 
-	
-	renderDeviceDestroyResources(instance->renderDevice, instance->window);
+	renderDeviceWaitIdle(instance->renderDevice);
+
+	renderDeviceDestroyPipelines(instance->renderDevice);
+
+	renderDeviceDestroyRenderResources(instance->renderDevice);
 
 	renderDeviceDestroy(instance->renderDevice);
 
@@ -69,5 +87,36 @@ void avInstanceDestroy(AvInstance instance) {
 	avFree(instance);
 
 
+}
+
+void avUpdate(AvInstance instance) {
+
+	if (!(windowGetStatus(instance->window) & DEVICE_STATUS_INOPERABLE)) {
+		RenderCommandsInfo commandsInfo = {};
+		renderDeviceAquireNextFrame(instance->renderDevice);
+		renderDeviceRecordRenderCommands(instance->renderDevice, commandsInfo);
+		renderDeviceRenderFrame(instance->renderDevice);
+		renderDevicePresent(instance->renderDevice);
+	}
+	windowUpdateEvents(instance->window);
+}
+
+bool avShutdownRequested(AvInstance instance) {
+
+	uint status = renderInstanceGetStatus(instance->renderInstance) |
+		displaySurfaceGetStatus(instance->displaySurface) |
+		renderDeviceGetStatus(instance->renderDevice) |
+		windowGetStatus(instance->window);
+	if (status & DEVICE_STATUS_FATAL_ERROR) {
+		avLog(AV_SHUTDOWN_REQUESTED, "fatal error, resulting in shutdown request");
+		return true;
+	}
+
+	if (status & DEVICE_STATUS_SHUTDOWN_REQUESTED) {
+		avLog(AV_SHUTDOWN_REQUESTED, "window requested shutdown");
+		return true;
+	}
+
+	return false;
 }
 

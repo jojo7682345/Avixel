@@ -4,8 +4,8 @@
   "configurations": [
     {
       "type": "native",
-      "name": "AvGraphicsUtilitiesTest.exe(1)",
-      "project": "bin\\AvGraphicsUtilitiesTest.exe",
+      "name": "avixelTest.exe",
+      "project": "bin\\avixelTest.exe",
       "projectTarget": ""
     }
   ]

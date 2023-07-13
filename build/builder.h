@@ -765,18 +765,18 @@ Pid cmd_run_async(Cmd cmd, Fd* fdin, Fd* fdout) {
     printf("%s\n", cstr_array_join(" ",cmd.line));
 
     BOOL bSuccess =
-        CreateProcess(
+        CreateProcessA(
             NULL,
             // TODO(#33): cmd_run_async on Windows does not render command line properly
             // It may require wrapping some arguments with double-quotes if they contains spaces, etc.
-            cstr_array_join(" ", cmd.line),
+            (char*) cstr_array_join(" ", cmd.line),
             NULL,
             NULL,
             TRUE,
             0,
             NULL,
             NULL,
-            (LPSTARTUPINFOW) & siStartInfo,
+            (LPSTARTUPINFOA) &siStartInfo,
             &piProcInfo
         );
 
