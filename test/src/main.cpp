@@ -21,14 +21,14 @@ void buildInterface(AvInstance instance) {
 
 const char* disabledLogCategories[] = {
 	"avixel",
-	//"AvCore",
-	//"AvVulkanRenderer"
+	//"avixel_core",
+	//"avixel_renderer"
 };
 uint disabledLogCategoryCount = sizeof(disabledLogCategories) / sizeof(const char*);
 
 AvResult disabledLogMessages[] = {
-	AV_DEBUG_CREATE,
-	AV_DEBUG_DESTROY,
+	//AV_DEBUG_CREATE,
+	//AV_DEBUG_DESTROY,
 };
 uint disabledLogMessageCount = sizeof(disabledLogMessages) / sizeof(AvResult);
 
@@ -50,7 +50,6 @@ int main(int argC, const char** argV) {
 	logSettings.disabledMessages = disabledLogMessages;
 	logSettings.disabledMessageCount = disabledLogMessageCount;
 	logSettings.validationLevel = AV_VALIDATION_LEVEL_WARNINGS_AND_ERRORS;
-	logSettings.assertLevel = AV_ASSERT_LEVEL_NORMAL;
 	logSettings.level = AV_LOG_LEVEL_ALL;
 
 	AvWindowCreateInfo windowInfo = {};

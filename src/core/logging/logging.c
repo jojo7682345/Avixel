@@ -238,6 +238,8 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 		MESSAGE(AV_UNUSUAL_ARGUMENTS, "unusual arguments"); // 4
 		MESSAGE(AV_TEST_WARNING, "test warning"); // 5
 		MESSAGE(AV_TIMEOUT, "timeout"); // 6
+		MESSAGE(AV_UNABLE_TO_PARSE, "parse error"); // 7
+		MESSAGE(AV_INVALID_SYNTAX, "invalid syntax"); // 8
 
 		// ERROR
 		MESSAGE(AV_ERROR, "error"); // 0
@@ -258,6 +260,7 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 		MESSAGE(AV_RENDER_ERROR, "render error"); // 15
 		MESSAGE(AV_PRESENT_ERROR, "present error"); // 16
 		MESSAGE(AV_SWAPCHAIN_ERROR, "swapchain error"); // 17
+
 	default:
 		message = error_code;
 		unknownCode = true;

@@ -74,7 +74,13 @@ gcc build/builder.c -o builder
 ./builder build avixel
 sudo ./builder install avixel
 ```
-the test executable should appear in the avixel folder. For information about the build system see the [[BUILDSYS_README|build system readme]]
+
+the test executable should appear in the folder named avixel
+
+## Posible improvements
+- add math to parameter definitions in parser
+
 
 ## Documentation
 Read the documentation in [[Documentation]]
+

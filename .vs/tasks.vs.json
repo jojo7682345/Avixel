@@ -86,6 +86,11 @@
           ]
         }
       ]
+    },
+    {
+      "taskLabel": "task-avixelTest",
+      "appliesTo": "avixel/avixelTest.exe",
+      "type": "launch"
     }
   ]
 }
