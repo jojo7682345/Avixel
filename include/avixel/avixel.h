@@ -6,14 +6,14 @@ extern "C" {
 #endif
 
 #ifndef DISABLE_ALL_TYPEDEFS
-#include "AvTypedefs.h"
+#include "avixel_typedefs.h"
 #endif
 
-#include "AvLogging.h"
-#include "AvGraphicsCore.h"
+#include "avixel_logging.h"
+#include "avixel_core.h"
 
-#include "AvMemory.h"
-#include "AvUiParser.h"
+#include "avixel_memory.h"
+#include "avixel_ui_parser.h"
 
 #ifdef __cplusplus
 }

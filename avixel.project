@@ -26,7 +26,7 @@ compileShaders {
 		.shader
 	]
 }
-AvGraphicsUtilities {
+avixel {
 	type: DLL
 	export: $(OUTPUT)
 	flags: -std=c11 -ggdb 
@@ -52,7 +52,7 @@ AvGraphicsUtilities {
 		#gdi32
 	]
 }
-AvGraphicsUtilitiesTest {
+avixelTest {
 	type: EXE 
 	export: [
 		test/assets
@@ -69,6 +69,6 @@ AvGraphicsUtilitiesTest {
 		lib
 	]
 	lib: [
-		AvGraphicsUtilities
+		avixel
 	]
 }
