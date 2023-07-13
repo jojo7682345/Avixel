@@ -20,6 +20,10 @@ typedef struct AvInstance_T {
 	RenderDevice renderDevice;
 }AvInstance_T;
 
+typedef struct AvWindow_T {
+
+} AvWindow_T;
+
 
 
  

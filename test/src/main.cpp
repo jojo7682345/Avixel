@@ -27,6 +27,8 @@ const char* disabledLogCategories[] = {
 uint disabledLogCategoryCount = sizeof(disabledLogCategories) / sizeof(const char*);
 
 AvResult disabledLogMessages[] = {
+	AV_DEBUG_CREATE,
+	AV_DEBUG_DESTROY,
 };
 uint disabledLogMessageCount = sizeof(disabledLogMessages) / sizeof(AvResult);
 
@@ -55,10 +57,11 @@ int main(int argC, const char** argV) {
 	windowInfo.sType = AV_STRUCTURE_TYPE_WINDOW_CREATE_INFO;
 	windowInfo.fullscreen = false;
 	windowInfo.resizable = false;
+	windowInfo.undecorated = false;
 	windowInfo.width = 1280;
 	windowInfo.height = 720;
-	windowInfo.x = AV_WINDOW_POSITION_NOT_SPECIFIED;
-	windowInfo.y = AV_WINDOW_POSITION_NOT_SPECIFIED;
+	windowInfo.x = AV_WINDOW_POSITION_CENTERED;
+	windowInfo.y = AV_WINDOW_POSITION_CENTERED;
 	windowInfo.title = "window";
 
 	AvProjectInfo projectInfo = {};
@@ -72,15 +75,18 @@ int main(int argC, const char** argV) {
 	instanceInfo.disableDeviceValidation = false;
 	instanceInfo.windowInfo = windowInfo;
 	
-
 	avAssert(
 		avInstanceCreate(instanceInfo, &instance),
 		AV_SUCCESS,
 		"instance creation"
 	);
 
-
 	buildInterface(instance);
+
+	while (!avShutdownRequested(instance)) {
+
+		avUpdate(instance);
+	}
 
 	avInstanceDestroy(instance);
 	

@@ -1,4 +1,5 @@
 #include "core.h"
+
 #undef AV_LOG_CATEGORY
 #define AV_LOG_CATEGORY "AvCore"
 
@@ -52,6 +53,7 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 	windowInfo.properties.resizable = createInfo.windowInfo.resizable;
 	windowInfo.properties.fullSurface = createInfo.windowInfo.fullscreen;
 	windowInfo.properties.title = createInfo.windowInfo.title;
+	windowInfo.properties.decorated = !createInfo.windowInfo.undecorated;
 	windowInfo.onWindowDisconnect;	// TODO: setup close event
 	windowInfo.onWindowResize;		// TODO: setup resize event
 	displaySurfaceCreateWindow(*pInstance, windowInfo, nullptr, &(*pInstance)->window);
@@ -60,19 +62,21 @@ AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance
 	renderDeviceInfo.window = (*pInstance)->window;
 	renderDeviceCreate(*pInstance, renderDeviceInfo, &(*pInstance)->renderDevice);
 
-	renderDeviceCreateResources((*pInstance)->renderDevice);
+	renderDeviceCreateRenderResources((*pInstance)->renderDevice);
 
 
-	renderDeviceCreatePipelines((*pInstance)->renderDevice,0,nullptr);
+	renderDeviceCreatePipelines((*pInstance)->renderDevice, 0, nullptr);
 
 	return AV_SUCCESS;
 }
 
 void avInstanceDestroy(AvInstance instance) {
 
+	renderDeviceWaitIdle(instance->renderDevice);
+
 	renderDeviceDestroyPipelines(instance->renderDevice);
-	
-	renderDeviceDestroyResources(instance->renderDevice);
+
+	renderDeviceDestroyRenderResources(instance->renderDevice);
 
 	renderDeviceDestroy(instance->renderDevice);
 
@@ -83,5 +87,36 @@ void avInstanceDestroy(AvInstance instance) {
 	avFree(instance);
 
 
+}
+
+void avUpdate(AvInstance instance) {
+
+	if (!(windowGetStatus(instance->window) & DEVICE_STATUS_INOPERABLE)) {
+		RenderCommandsInfo commandsInfo = {};
+		renderDeviceAquireNextFrame(instance->renderDevice);
+		renderDeviceRecordRenderCommands(instance->renderDevice, commandsInfo);
+		renderDeviceRenderFrame(instance->renderDevice);
+		renderDevicePresent(instance->renderDevice);
+	}
+	windowUpdateEvents(instance->window);
+}
+
+bool avShutdownRequested(AvInstance instance) {
+
+	uint status = renderInstanceGetStatus(instance->renderInstance) |
+		displaySurfaceGetStatus(instance->displaySurface) |
+		renderDeviceGetStatus(instance->renderDevice) |
+		windowGetStatus(instance->window);
+	if (status & DEVICE_STATUS_FATAL_ERROR) {
+		avLog(AV_SHUTDOWN_REQUESTED, "fatal error, resulting in shutdown request");
+		return true;
+	}
+
+	if (status & DEVICE_STATUS_SHUTDOWN_REQUESTED) {
+		avLog(AV_SHUTDOWN_REQUESTED, "window requested shutdown");
+		return true;
+	}
+
+	return false;
 }
 

@@ -209,42 +209,55 @@ void printTags(AvResult result, AV_LOCATION_ARGS, AV_CATEGORY_ARGS, const char* 
 	bool unknownCode = false;
 
 	switch (result) {
-		MESSAGE(AV_SUCCESS, "success");
-		MESSAGE(AV_TEST_SUCCESS, "test success");
+		// SUCCESS
+		MESSAGE(AV_SUCCESS, "success");	// 0
+		MESSAGE(AV_TEST_SUCCESS, "test success"); // 1
 
-		MESSAGE(AV_DEBUG, "debug");
-		MESSAGE(AV_DEBUG_CREATE, "create");
-		MESSAGE(AV_DEBUG_DESTROY, "destroy");
-		MESSAGE(AV_DEBUG_SUCCESS, "success");
-		MESSAGE(AV_DEBUG_INFO, "info");
-		MESSAGE(AV_VALIDATION_PRESENT, "validation");
-		MESSAGE(AV_TEST_DEBUG, "test debug");
+		// DEBUG
+		MESSAGE(AV_DEBUG, "debug"); // 0
+		MESSAGE(AV_DEBUG_CREATE, "create"); // 1
+		MESSAGE(AV_DEBUG_DESTROY, "destroy"); // 2
+		MESSAGE(AV_DEBUG_SUCCESS, "success"); // 3
+		MESSAGE(AV_DEBUG_INFO, "info"); // 4
+		MESSAGE(AV_VALIDATION_PRESENT, "validation"); // 5
+		MESSAGE(AV_TEST_DEBUG, "test debug"); // 6
+		MESSAGE(AV_SHUTDOWN_REQUESTED, "shutdown requested"); // 7
+		MESSAGE(AV_SWAPCHAIN_RECREATION, "swapchain recreation"); // 8
+		MESSAGE(AV_WINDOW_SIZE, "window size"); // 9
 
-		MESSAGE(AV_INFO, "info");
-		MESSAGE(AV_TEST_INFO, "test info");
-		MESSAGE(AV_TIME, "time");
+		// INFO
+		MESSAGE(AV_INFO, "info"); // 0 
+		MESSAGE(AV_TEST_INFO, "test info"); // 1
+		MESSAGE(AV_TIME, "time"); // 2
 
-		MESSAGE(AV_WARNING, "warning");
-		MESSAGE(AV_OUT_OF_BOUNDS, "out of bounds");
-		MESSAGE(AV_VALIDATION_NOT_PRESENT, "validation not present");
-		MESSAGE(AV_UNSPECIFIED_CALLBACK, "unspecified callback");
-		MESSAGE(AV_TEST_WARNING, "test warning");
-		MESSAGE(AV_TIMEOUT, "timeout");
+		// WARNING
+		MESSAGE(AV_WARNING, "warning"); // 0
+		MESSAGE(AV_OUT_OF_BOUNDS, "out of bounds"); // 1
+		MESSAGE(AV_VALIDATION_NOT_PRESENT, "validation not present"); // 2
+		MESSAGE(AV_UNSPECIFIED_CALLBACK, "unspecified callback"); // 3
+		MESSAGE(AV_UNUSUAL_ARGUMENTS, "unusual arguments"); // 4
+		MESSAGE(AV_TEST_WARNING, "test warning"); // 5
+		MESSAGE(AV_TIMEOUT, "timeout"); // 6
 
-		MESSAGE(AV_ERROR, "error");
-		MESSAGE(AV_NO_SUPPORT, "no support");
-		MESSAGE(AV_INVALID_ARGUMENTS, "invalid arguments");
-		MESSAGE(AV_TIMED_OUT, "timed out");
-		MESSAGE(AV_MEMORY_ERROR, "memory error");
-		MESSAGE(AV_CREATION_ERROR, "creation error");
-		MESSAGE(AV_TEST_ERROR, "test error");
-		MESSAGE(AV_IO_ERROR, "I/O error");
-		MESSAGE(AV_NOT_FOUND, "not found");
-		MESSAGE(AV_NOT_IMPLEMENTED, "not implemented");
-		MESSAGE(AV_NOT_INITIALIZED, "not initialized");
-		MESSAGE(AV_ALREADY_INITIALIZED, "already initialized");
-		MESSAGE(AV_ALREADY_EXISTS, "already exists");
-		MESSAGE(AV_PARSE_ERROR, "parse error");
+		// ERROR
+		MESSAGE(AV_ERROR, "error"); // 0
+		MESSAGE(AV_NO_SUPPORT, "no support"); // 1
+		MESSAGE(AV_INVALID_ARGUMENTS, "invalid arguments"); // 2
+		MESSAGE(AV_TIMED_OUT, "timed out"); // 3
+		MESSAGE(AV_MEMORY_ERROR, "memory error"); // 4
+		MESSAGE(AV_CREATION_ERROR, "creation error"); // 5
+		MESSAGE(AV_TEST_ERROR, "test error"); // 6
+		MESSAGE(AV_IO_ERROR, "I/O error"); // 7
+		MESSAGE(AV_NOT_FOUND, "not found"); // 8
+		MESSAGE(AV_NOT_IMPLEMENTED, "not implemented"); // 9
+		MESSAGE(AV_NOT_INITIALIZED, "not initialized"); // 10
+		MESSAGE(AV_ALREADY_INITIALIZED, "already initialized"); // 11
+		MESSAGE(AV_ALREADY_EXISTS, "already exists"); // 12
+		MESSAGE(AV_PARSE_ERROR, "parse error"); // 13
+		MESSAGE(AV_RENDER_COMMAND_ERROR, "render command error"); // 14
+		MESSAGE(AV_RENDER_ERROR, "render error"); // 15
+		MESSAGE(AV_PRESENT_ERROR, "present error"); // 16
+		MESSAGE(AV_SWAPCHAIN_ERROR, "swapchain error"); // 17
 	default:
 		message = error_code;
 		unknownCode = true;

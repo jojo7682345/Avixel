@@ -39,8 +39,10 @@ typedef struct AvWindowCreateInfo{
 	const char* title;
 	bool resizable;
 	bool fullscreen;
+	bool undecorated;
 }AvWindowCreateInfo;
 #define AV_WINDOW_POSITION_NOT_SPECIFIED (-1)
+#define AV_WINDOW_POSITION_CENTERED (-2)
 
 // INSTANCE
 AV_DEFINE_HANDLE(AvInstance);
@@ -55,6 +57,10 @@ typedef struct AvInstanceCreateInfo{
 }AvInstanceCreateInfo;
 AvResult avInstanceCreate(AvInstanceCreateInfo createInfo, AvInstance* pInstance);
 void avInstanceDestroy(AvInstance instance);
+
+void avUpdate(AvInstance instance);
+bool avShutdownRequested(AvInstance instance);
+
 
 AV_DEFINE_HANDLE(AvWindow);
 void avInstanceGetPrimaryWindow(AvInstance, AvWindow* window);
