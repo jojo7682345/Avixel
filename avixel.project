@@ -29,7 +29,7 @@ compileShaders {
 avixel {
 	type: DLL
 	export: $(OUTPUT)
-	flags: -std=c11 -ggdb 
+	flags: -std=c11 -ggdb -fPIC
 	source: [
 		src
 	]
@@ -58,7 +58,7 @@ avixelTest {
 		test/assets
 		$(OUTPUT)
 	]
-	flags: -Wall -ggdb -fPIC
+	flags: -Wall -ggdb
 	source: [
 		test/src
 	]

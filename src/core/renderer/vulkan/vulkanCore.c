@@ -1412,9 +1412,10 @@ AvResult renderDevicePresent(RenderDevice device) {
 	presentInfo.pImageIndices = &device->window->nextFrameIndex;
 
 	VkResult result = vkQueuePresentKHR(device->presentQueue, &presentInfo);
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || device->window->status & DEVICE_STATUS_RESIZED) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || device->window->status & (DEVICE_STATUS_RESIZED|DEVICE_STATUS_INOPERABLE)) {
 		recreateSwapchain(device);
 		device->window->status &= ~DEVICE_STATUS_RESIZED;
+		device->window->status &= ~DEVICE_STATUS_INOPERABLE;
 	} else if (result != VK_SUCCESS) {
 		avAssert(AV_PRESENT_ERROR, AV_SUCCESS, "failed to present");
 	}
