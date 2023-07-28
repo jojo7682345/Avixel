@@ -1095,7 +1095,7 @@ void installProject(Project project, const char* projectName){
 	}
 
 	const char* projectFile = CONCAT(LIB_PREFIX,project.name,project.type==PROJECT_TYPE_DLL?DLL_EXTENSION:LIB_EXTENSION); 
-	const char* outDir = CONCAT(PATH_SEP,PATH("usr","local","lib"));
+	const char* outDir = CONCAT(PATH_SEP,PATH("usr","lib"));
 	copyFile(
 		PATH("lib",projectFile), 
 		PATH(outDir,projectFile)
@@ -1154,9 +1154,10 @@ int buildProject(Project project, const char* projectName) {
 
 		compile(source, outFolder, &compiledFiles, &compiledCount,project.includeCount, (const char**)project.include, project.compiler, project.flags, project.fileTypeCount,(const char**) project.fileTypes, project.outType);
 		const char* output = linker(compiledFiles, compiledCount, project);
-
-		if (!PATH_EXISTS(projectName)) {
-			MKDIRS(projectName);
+		if(project.exportCount){
+			if (!PATH_EXISTS(projectName)) {
+				MKDIRS(projectName);
+			}
 		}
 		for (int i = 0; i < project.exportCount; i++) {
 			const char* export = extractEnv(project.exports[i], project);
