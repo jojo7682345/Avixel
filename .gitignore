@@ -30,6 +30,6 @@ CppProperties.json
 avixel/
 Avixel
 !include/Avixel
-!shaders/include
-!shaders/compiled
+shaders/include
+shaders/compiled
 
