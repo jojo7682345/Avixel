@@ -27,6 +27,42 @@ const char* const validationLayers[] = {
 };
 const uint validationLayerCount = sizeof(validationLayers) / sizeof(const char*);
 
+typedef struct Vertex {
+	Vec3f pos;
+	Vec3f color;
+} Vertex;
+const VkVertexInputBindingDescription vertexBindingDescription = {
+	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
+	.stride = sizeof(Vertex),
+	.binding = 0
+};
+const VkVertexInputAttributeDescription vertexAttributeDescriptions[] = {
+	{
+		.binding = 0,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.location = 0,
+		.offset = offsetof(Vertex, pos)
+	},
+	{
+		.binding = 0,
+		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.location = 1,
+		.offset = offsetof(Vertex, color)
+	},
+};
+const uint vertexAttributeDescriptionCount = sizeof(vertexAttributeDescriptions) / sizeof(VkVertexInputAttributeDescription);
+
+const Vertex vertices[] = {
+	{{.x = -0.5f, .y = -0.5f, .z = 0.0f}, {.r = 1.0f, .g = 0.0f, .b = 0.0f}},
+	{{.x =  0.5f, .y = -0.5f, .z = 0.0f}, {.r = 0.0f, .g = 1.0f, .b = 0.0f}},
+	{{.x =  0.5f, .y =  0.5f, .z = 0.0f}, {.r = 0.0f, .g = 0.0f, .b = 1.0f}},
+	{{.x = -0.5f, .y =  0.5f, .z = 0.0f}, {.r = 1.0f, .g = 1.0f, .b = 1.0f}},
+};
+const uint16 indices[] = {
+	0, 1, 2, 2, 3, 0
+};
+const uint vertexCount = sizeof(indices) / sizeof(uint16);
+
 
 typedef struct RenderInstance_T {
 	DeviceStatus status;
@@ -56,6 +92,19 @@ typedef struct Pipeline_T {
 	VkPipeline pipeline;
 }Pipeline_T;
 
+typedef struct DeviceBuffer_T {
+	VkBuffer buffer;
+	VkDeviceSize size;
+	VkDeviceMemory memory;
+
+	RenderDevice device;
+} DeviceBuffer_T;
+
+typedef struct RenderResources_T {
+	DeviceBuffer_T vertexBuffer;
+	DeviceBuffer_T indexBuffer;
+} RenderResources_T;
+
 typedef struct RenderDevice_T {
 	DeviceStatus status;
 	Window window;
@@ -73,6 +122,8 @@ typedef struct RenderDevice_T {
 
 	Pipeline_T renderPipeline;
 	Pipeline_T fontPipeline;
+
+	RenderResources_T resources;
 } RenderDevice_T;
 
 typedef struct Frame {
@@ -127,6 +178,10 @@ typedef struct DisplaySurface_T {
 	uint height;
 	DisplayType type;
 } DisplaySurface_T;
+
+
+
+
 
 void checkCreation_(VkResult result, const char* msg, AV_LOCATION_ARGS, AV_CATEGORY_ARGS) {
 	if (result != VK_SUCCESS) {
@@ -258,8 +313,8 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 		}
 
 		glfwSetWindowPos((*window)->window, x, y);
-	} else if ((windowCreateInfo.properties.size.x == -1 && windowCreateInfo.properties.size.y != -1) || 
-			   (windowCreateInfo.properties.size.x != -1 && windowCreateInfo.properties.size.y == -1)) {
+	} else if ((windowCreateInfo.properties.size.x == -1 && windowCreateInfo.properties.size.y != -1) ||
+		(windowCreateInfo.properties.size.x != -1 && windowCreateInfo.properties.size.y == -1)) {
 		avAssert(AV_UNUSUAL_ARGUMENTS, AV_SUCCESS, "single axis specified, should be both or none");
 	}
 
@@ -278,7 +333,7 @@ AvResult displaySurfaceCreateWindow(AvInstance instance, WindowCreateInfo window
 	glfwGetWindowSize((*window)->window, &width, &height);
 	glfwGetWindowPos((*window)->window, &x, &y);
 
-	
+
 
 	if (windowProperties) {
 		windowProperties->fullSurface = windowCreateInfo.properties.fullSurface;
@@ -958,6 +1013,110 @@ void frameDestroyResources(RenderDevice device, Window window, Frame frame) {
 
 }
 
+uint32_t findMemoryType(RenderDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	VkPhysicalDeviceMemoryProperties memProperties;
+	vkGetPhysicalDeviceMemoryProperties(device->physicalDevice, &memProperties);
+	for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+			return i;
+		}
+	}
+	avAssert(AV_MEMORY_ERROR, AV_SUCCESS, "failed to find suitable memory type");
+	return -1;
+}
+
+void createDeviceBuffer(RenderDevice device, uint size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, DeviceBuffer_T* buffer) {
+	buffer->device = device;
+	buffer->size = size;
+
+	VkBufferCreateInfo bufferInfo = { 0 };
+	bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+	bufferInfo.size = size;
+	bufferInfo.usage = usage;
+	bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+	checkCreation(
+		vkCreateBuffer(device->device, &bufferInfo, nullptr, &buffer->buffer),
+		"creating buffer"
+	);
+
+	VkMemoryRequirements memRequirements;
+	vkGetBufferMemoryRequirements(device->device, buffer->buffer, &memRequirements);
+
+	VkMemoryAllocateInfo allocInfo = { 0 };
+	allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+	allocInfo.allocationSize = memRequirements.size;
+	allocInfo.memoryTypeIndex = findMemoryType(device, memRequirements.memoryTypeBits, properties);
+
+	checkCreation(
+		vkAllocateMemory(device->device, &allocInfo, nullptr, &buffer->memory),
+		"allocating buffer memory"
+	);
+
+	vkBindBufferMemory(device->device, buffer->buffer, buffer->memory, 0);
+}
+
+void deviceBufferPush(DeviceBuffer_T buffer, const void* const data) {
+	void* bufferPtr;
+	vkMapMemory(buffer.device->device, buffer.memory, 0, buffer.size, 0, &bufferPtr);
+	memcpy(bufferPtr, data, buffer.size);
+	vkUnmapMemory(buffer.device->device, buffer.memory);
+}
+
+void deviceBufferPull(DeviceBuffer_T buffer, void* data) {
+	void* bufferPtr;
+	vkMapMemory(buffer.device->device, buffer.memory, 0, buffer.size, 0, &bufferPtr);
+	memcpy(data, bufferPtr, buffer.size);
+	vkUnmapMemory(buffer.device->device, buffer.memory);
+}
+
+void destroyDeviceBuffer(DeviceBuffer_T buffer) {
+	vkDestroyBuffer(buffer.device->device, buffer.buffer, nullptr);
+	vkFreeMemory(buffer.device->device, buffer.memory, nullptr);
+}
+
+void copyDeviceBuffer(DeviceBuffer_T src, DeviceBuffer_T dst) {
+	if (src.device != dst.device) {
+		avAssert(AV_DEVICE_MISMATCH, 0, "buffers created on different devices");
+		return;
+	}
+	if (src.size != dst.size) {
+		avAssert(AV_INVALID_SIZE, 0, "buffers differ in size");
+		return;
+	}
+	VkCommandBufferAllocateInfo allocInfo = { 0 };
+	allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+	allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	allocInfo.commandPool = src.device->commandPool;
+	allocInfo.commandBufferCount = 1;
+
+	VkCommandBuffer commandBuffer;
+	vkAllocateCommandBuffers(src.device->device, &allocInfo, &commandBuffer);
+
+	VkCommandBufferBeginInfo beginInfo = { 0 };
+	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+	vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+	VkBufferCopy copyRegion = { 0 };
+	copyRegion.srcOffset = 0; // Optional
+	copyRegion.dstOffset = 0; // Optional
+	copyRegion.size = src.size;
+	vkCmdCopyBuffer(commandBuffer, src.buffer, dst.buffer, 1, &copyRegion);
+
+	vkEndCommandBuffer(commandBuffer);
+
+	VkSubmitInfo submitInfo = {};
+	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+	submitInfo.commandBufferCount = 1;
+	submitInfo.pCommandBuffers = &commandBuffer;
+
+	vkQueueSubmit(src.device->graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+	vkQueueWaitIdle(src.device->graphicsQueue);
+	vkFreeCommandBuffers(src.device->device, src.device->commandPool, 1, &commandBuffer);
+
+}
 
 void renderDeviceCreateRenderResources(RenderDevice device) {
 	Window window = device->window;
@@ -1051,6 +1210,46 @@ void renderDeviceCreateRenderResources(RenderDevice device) {
 
 	createSwapchain(device);
 
+
+	uint vertexBufferSize = sizeof(vertices);
+	DeviceBuffer_T stagingBuffer;
+	createDeviceBuffer(
+		device,
+		vertexBufferSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&stagingBuffer
+	);
+	deviceBufferPush(stagingBuffer, vertices);
+	createDeviceBuffer(
+		device,
+		vertexBufferSize,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&device->resources.vertexBuffer
+	);
+	copyDeviceBuffer(stagingBuffer, device->resources.vertexBuffer);
+	destroyDeviceBuffer(stagingBuffer);
+
+	uint indexBufferSize = sizeof(indices);
+	createDeviceBuffer(
+		device,
+		indexBufferSize,
+		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT,
+		&stagingBuffer
+	);
+	deviceBufferPush(stagingBuffer, indices);
+	createDeviceBuffer(
+		device,
+		indexBufferSize,
+		VK_BUFFER_USAGE_TRANSFER_DST_BIT | VK_BUFFER_USAGE_INDEX_BUFFER_BIT,
+		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+		&device->resources.indexBuffer
+	);
+	copyDeviceBuffer(stagingBuffer, device->resources.indexBuffer);
+	destroyDeviceBuffer(stagingBuffer);
+
 }
 
 VkShaderModule createShaderModule(const size_t codeSize, const char* codeText, RenderDevice device, const char* msg) {
@@ -1105,10 +1304,10 @@ void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, Pipe
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo = { 0 };
 	vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-	vertexInputInfo.vertexBindingDescriptionCount = 0;
-	vertexInputInfo.pVertexBindingDescriptions = nullptr; // Optional
-	vertexInputInfo.vertexAttributeDescriptionCount = 0;
-	vertexInputInfo.pVertexAttributeDescriptions = nullptr; // Optional
+	vertexInputInfo.vertexBindingDescriptionCount = 1;
+	vertexInputInfo.pVertexBindingDescriptions = &vertexBindingDescription;
+	vertexInputInfo.vertexAttributeDescriptionCount = vertexAttributeDescriptionCount;
+	vertexInputInfo.pVertexAttributeDescriptions = vertexAttributeDescriptions;
 
 	VkPipelineInputAssemblyStateCreateInfo inputAssembly = { 0 };
 	inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -1359,7 +1558,11 @@ AvResult renderDeviceRecordRenderCommands(RenderDevice device, RenderCommandsInf
 	scissor.extent = device->window->frameExtent;
 	vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-	vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	VkBuffer vertexBuffers[] = { device->resources.vertexBuffer.buffer };
+	VkDeviceSize offsets[] = { 0 };
+	vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+	vkCmdBindIndexBuffer(commandBuffer, device->resources.indexBuffer.buffer, 0, VK_INDEX_TYPE_UINT16);
+	vkCmdDrawIndexed(commandBuffer, vertexCount, 1, 0, 0, 0);
 
 	vkCmdEndRenderPass(commandBuffer);
 
@@ -1412,7 +1615,7 @@ AvResult renderDevicePresent(RenderDevice device) {
 	presentInfo.pImageIndices = &device->window->nextFrameIndex;
 
 	VkResult result = vkQueuePresentKHR(device->presentQueue, &presentInfo);
-	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || device->window->status & (DEVICE_STATUS_RESIZED|DEVICE_STATUS_INOPERABLE)) {
+	if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || device->window->status & (DEVICE_STATUS_RESIZED | DEVICE_STATUS_INOPERABLE)) {
 		recreateSwapchain(device);
 		device->window->status &= ~DEVICE_STATUS_RESIZED;
 		device->window->status &= ~DEVICE_STATUS_INOPERABLE;
@@ -1425,6 +1628,11 @@ AvResult renderDevicePresent(RenderDevice device) {
 	return AV_SUCCESS;
 }
 
+
+
+
+
+
 void renderDeviceDestroyPipelines(RenderDevice device) {
 
 	vkDestroyPipeline(device->device, device->renderPipeline.pipeline, nullptr);
@@ -1436,6 +1644,9 @@ void renderDeviceDestroyPipelines(RenderDevice device) {
 
 void renderDeviceDestroyRenderResources(RenderDevice device) {
 	Window window = device->window;
+
+	destroyDeviceBuffer(device->resources.vertexBuffer);
+	destroyDeviceBuffer(device->resources.indexBuffer);
 
 	cleanupSwapChain(device);
 

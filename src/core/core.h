@@ -6,6 +6,7 @@
 #include "renderer/renderer.h"
 #include "positioner/positioner.h"
 #include "components/component.h"
+#include "math/math.h"
 
 typedef struct RenderInstance_T* RenderInstance;
 typedef struct RenderDevice_T* RenderDevice;

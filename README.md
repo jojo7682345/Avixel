@@ -18,7 +18,7 @@ A GUI library in written in C using Vulkan and GLFW
 ## Tasks
 - [x] Build system migration
 - [ ] Renderer
-    - [ ] Render rectangles
+    - [x] Render rectangles
         - [ ] Basic Transform buffer input
         - [ ] Basic Mesh input
         - [ ] Basic Shaders
@@ -54,6 +54,7 @@ clone the repository and run the following commands
 - vulkan drivers (>= 1.0)
 - vulkan validation layers (optional: for debugging)
 #### build dependencies
+- GCC >= 3.4
 - glfw >= 3.3.8 _(might work with older versions)_
 - shaderc
 - vulkanSDK( aka: vulkan-dev ) (>= 1.0)

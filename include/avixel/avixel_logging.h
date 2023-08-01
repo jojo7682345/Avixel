@@ -52,6 +52,7 @@ typedef enum AvResult {
 	AV_PRESENT_ERROR = AV_ERROR | 16,
 	AV_SWAPCHAIN_ERROR = AV_ERROR | 17,
 	AV_INVALID_SIZE = AV_ERROR | 18,
+	AV_DEVICE_MISMATCH = AV_ERROR | 19,
 } AvResult;
 
 typedef enum AvLogLevel {
