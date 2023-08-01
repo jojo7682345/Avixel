@@ -2,11 +2,15 @@
 #extension GL_KHR_vulkan_glsl: enable
 
 layout(location = 0) in vec3 inPosition;
-layout(location = 1) in vec3 inColor;
+layout(location = 1) in vec2 uvCoord;
 
-layout(location = 0) out vec3 fragColor;
+layout(location = 0) out vec2 fragUvCoord;
+
+layout(binding = 0) uniform RectLocation{
+    mat4 location;
+};
 
 void main() {
-    gl_Position = vec4(inPosition.x, inPosition.y, inPosition.z, 1.0);
-    fragColor = inColor;
+    gl_Position = location * vec4(inPosition, 1.0);
+    fragUvCoord = uvCoord;
 }

@@ -29,7 +29,7 @@ const uint validationLayerCount = sizeof(validationLayers) / sizeof(const char*)
 
 typedef struct Vertex {
 	Vec3f pos;
-	Vec3f color;
+	Vec2f uvCoord;
 } Vertex;
 const VkVertexInputBindingDescription vertexBindingDescription = {
 	.inputRate = VK_VERTEX_INPUT_RATE_VERTEX,
@@ -45,18 +45,18 @@ const VkVertexInputAttributeDescription vertexAttributeDescriptions[] = {
 	},
 	{
 		.binding = 0,
-		.format = VK_FORMAT_R32G32B32_SFLOAT,
+		.format = VK_FORMAT_R32G32_SFLOAT,
 		.location = 1,
-		.offset = offsetof(Vertex, color)
+		.offset = offsetof(Vertex, uvCoord)
 	},
 };
 const uint vertexAttributeDescriptionCount = sizeof(vertexAttributeDescriptions) / sizeof(VkVertexInputAttributeDescription);
 
 const Vertex vertices[] = {
-	{{.x = -0.5f, .y = -0.5f, .z = 0.0f}, {.r = 1.0f, .g = 0.0f, .b = 0.0f}},
-	{{.x =  0.5f, .y = -0.5f, .z = 0.0f}, {.r = 0.0f, .g = 1.0f, .b = 0.0f}},
-	{{.x =  0.5f, .y =  0.5f, .z = 0.0f}, {.r = 0.0f, .g = 0.0f, .b = 1.0f}},
-	{{.x = -0.5f, .y =  0.5f, .z = 0.0f}, {.r = 1.0f, .g = 1.0f, .b = 1.0f}},
+	{{.x = -0.5f, .y = -0.5f, .z = 0.0f}, {.u = 0.0f, .v = 0.0f }},
+	{{.x = 0.5f, .y = -0.5f, .z = 0.0f}, {.u = 1.0f, .v = 0.0f }},
+	{{.x = 0.5f, .y = 0.5f, .z = 0.0f}, {.u = 1.0f, .v = 1.0f }},
+	{{.x = -0.5f, .y = 0.5f, .z = 0.0f}, {.u = 0.0f, .v = 1.0f }},
 };
 const uint16 indices[] = {
 	0, 1, 2, 2, 3, 0
@@ -90,6 +90,7 @@ typedef struct SwapChainSupportDetails {
 typedef struct Pipeline_T {
 	VkPipelineLayout layout;
 	VkPipeline pipeline;
+	VkDescriptorSetLayout descriptorLayout;
 }Pipeline_T;
 
 typedef struct DeviceBuffer_T {
@@ -103,6 +104,9 @@ typedef struct DeviceBuffer_T {
 typedef struct RenderResources_T {
 	DeviceBuffer_T vertexBuffer;
 	DeviceBuffer_T indexBuffer;
+
+
+	DeviceBuffer_T uniformBuffers[MAX_FRAMES_IN_FLIGHT];
 } RenderResources_T;
 
 typedef struct RenderDevice_T {
@@ -1275,11 +1279,44 @@ void renderDeviceCreatePipelines(RenderDevice device, uint createInfoCount, Pipe
 
 	Window window = device->window;
 
+	VkDescriptorSetLayoutBinding locationLayoutBinding = { 0 };
+	locationLayoutBinding.binding = 0;
+	locationLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	locationLayoutBinding.descriptorCount = 1;
+	locationLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	locationLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding colorLayoutBinding = { 0 };
+	colorLayoutBinding.binding = 1;
+	colorLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+	colorLayoutBinding.descriptorCount = 1;
+	colorLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	colorLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding textureLayoutBinding = { 0 };
+	textureLayoutBinding.binding = 2;
+	textureLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+	textureLayoutBinding.descriptorCount = 1;
+	textureLayoutBinding.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+	textureLayoutBinding.pImmutableSamplers = nullptr;
+
+	VkDescriptorSetLayoutBinding setBindings[] = { locationLayoutBinding, colorLayoutBinding, textureLayoutBinding };
+
+	VkDescriptorSetLayoutCreateInfo descriptorLayoutInfo = { 0 };
+	descriptorLayoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+	descriptorLayoutInfo.bindingCount = sizeof(setBindings) / sizeof(VkDescriptorSetLayoutBinding);
+	descriptorLayoutInfo.pBindings = setBindings;
+
+	checkCreation(
+		vkCreateDescriptorSetLayout(device->device, &descriptorLayoutInfo, nullptr, &device->renderPipeline.descriptorLayout),
+		"creating descriptor layout"
+	);
+
 
 	VkPipelineLayoutCreateInfo renderPipelineLayoutCreateInfo = { 0 };
 	renderPipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-	renderPipelineLayoutCreateInfo.setLayoutCount = 0; // Optional
-	renderPipelineLayoutCreateInfo.pSetLayouts = nullptr; // Optional
+	renderPipelineLayoutCreateInfo.setLayoutCount = 1;
+	renderPipelineLayoutCreateInfo.pSetLayouts = &device->renderPipeline.descriptorLayout;
 	renderPipelineLayoutCreateInfo.pushConstantRangeCount = 0; // Optional
 	renderPipelineLayoutCreateInfo.pPushConstantRanges = nullptr; // Optional
 

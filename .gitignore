@@ -29,7 +29,5 @@ CppProperties.json
 #project export files
 avixel/
 Avixel
-!include/Avixel
-shaders/include
-shaders/compiled
+!include/avixel
 

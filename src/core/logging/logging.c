@@ -176,6 +176,15 @@ void logDeviceValidation(const char* renderer, AvValidationLevel level, Validati
 		fprintf(stdout, COLOR"["COLOR"performance"COLOR"]", AV_COLOR_RESET, AV_COLOR_BLUE, AV_COLOR_RESET);
 		break;
 	}
+
+	for (int i = 0; i < strlen(message); i++) {
+		if (message[i] == ';') {
+			if (message[i+1] != '\0') {
+				((char*)message)[i + 1] = '\n';
+			}
+		}
+	}
+
 	fprintf(stdout, " -> %s\n", message);
 }
 

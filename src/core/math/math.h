@@ -4,10 +4,12 @@ typedef struct Vec2f {
 	union {
 		float x;
 		float r;
+		float u;
 	};
 	union {
 		float y;
 		float g;
+		float v;
 	};
 } Vec2f;
 
