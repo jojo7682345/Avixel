@@ -506,7 +506,7 @@ const char* linker(const char** compiledFiles, size_t compiledCount, Project pro
 					memcpy(imDir, out, nextPath - out);
 					nextPath += 1;
 					imDir[511] = '\0';
-					if (!PATH_EXISTS(imDir) && project.outType[0] ? (!ENDS_WITH(imDir,project.outType)) : TRUE) {
+					if (!PATH_EXISTS(imDir) && project.outType[0] ? (!ENDS_WITH(imDir,project.outType)) : 1) {
 						MKDIRS(imDir);
 					}
 					else {
